@@ -95,18 +95,16 @@ module.exports = {
             }
 
             let found = false;
-            for (let i = 0; i < companyPackages.length; i++) {
-                const pkg = companyPackages[i];
-                if (pkg[packageId]) {
-                    if (updateFields.eta) {
-                        pkg[packageId].eta = updateFields.eta;
-                    }
-                    if (updateFields.status) {
-                        pkg[packageId].status = updateFields.status;
-                    }
-                    found = true;
-                    break;
+            const pkgObj = companyPackages.find(pkg => pkg[packageId]);
+
+            if (pkgObj) {
+                if (updateFields.eta) {
+                    pkgObj[packageId].eta = updateFields.eta;
                 }
+                if (updateFields.status) {
+                    pkgObj[packageId].status = updateFields.status;
+                }
+                found = true;
             }
 
             if (!found) {
@@ -117,6 +115,64 @@ module.exports = {
             res.status(200).json({ message: 'Package updated successfully' });
             });
         }, true);
+    },
+
+    getPackages: async (req, res) => {
+        const companyId = req.params.companyid;
+        readFile((data) => {
+            const companyPackages = data[companyId];
+            if (!companyPackages) {
+                return res.status(404).json({ error: 'Company not found' });
+            }
+            
+            res.status(200).json({ companyPackages: companyPackages });
+        }, true);
+    },
+    getPackage: async (req, res) => {
+        const packageId = req.params.packageid;
+        const companyId = req.params.companyid;       
+         readFile((data) => {
+            const companyPackages = data[companyId];
+            if (!companyPackages) {
+                return res.status(404).json({ error: 'Company not found' });
+            }
+            const packageData = companyPackages.find(pkg => pkg[packageId]);
+            if (!packageData) {
+                return res.status(404).json({ error: 'Package not found' });
+            }
+            
+            res.status(200).json({ companyPackage: packageData });
+        }, true);
+    },
+    AddLocationToPackage: async (req, res) => {
+        const packageId = req.params.packageid;
+        const companyId = req.params.companyid;       
+         readFile((data) => {
+            const companyPackages = data[companyId];
+            if (!companyPackages) {
+                return res.status(404).json({ error: 'Company not found' });
+            }
+            const packageData = companyPackages.find(pkg => pkg[packageId]);
+            if (!packageData) {
+                return res.status(404).json({ error: 'Package not found' });
+            }
+            if(!packageData[packageId].path){
+                packageData[packageId].path = [];
+            }
+            const existingPath = packageData[packageId].path;
+            existingPath.findIndex = existingPath.findIndex(loc => loc.lon === req.body.lon && loc.lat === req.body.lat);
+            if(existingPath.findIndex !== -1){
+                return res.status(400).json({ error: 'Location already exists in the package path' });
+            }
+            existingPath.push({ lon: req.body.lon, lat: req.body.lat });
+            writeFile(JSON.stringify(data, null, 2), () => {
+                res.status(200).json({ message: 'Location added to package path successfully' });
+            });
+
+            
+            res.status(200).json({ companyPackage: packageData });
+        }, true);
     }
+
 };
 
