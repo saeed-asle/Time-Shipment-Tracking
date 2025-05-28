@@ -1,9 +1,12 @@
 const express = require('express');
+routers=require('./server/routes/url')
 
-routers=require('')
-
- 
 const app = express();
+const port =3001;
 
-app.get('/',(req,res)=>res.send('Hellow'));
-app.listen(3000,()=>console.log('server started on port 3000'))
+app.use(express.json());
+app.use(express.urlencoded({ extended:true}))
+
+app.use("/",routers)
+
+const server = app.listen(port,()=>{ console.log('server started on port %s',server.address().port)});
