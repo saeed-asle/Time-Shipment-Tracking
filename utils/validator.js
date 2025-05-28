@@ -24,6 +24,10 @@ const packageSchema = yup.object({
     })
   ).default([])
 });
+const updateSchema = yup.object({
+  eta: yup.date().optional(),
+  status: yup.string().oneOf(["packed", "shipped", "intransit", "delivered"]).optional()
+});
 
 module.exports = {
   validatePackage: async (data) => {
@@ -31,10 +35,15 @@ module.exports = {
       await packageSchema.validate(data, { abortEarly: false });
       return { valid: true };
     } catch (err) {
-      return {
-        valid: false,
-        error: err.errors.join(', ')
-      };
+      return { valid: false, error: err.errors.join(', ') };
+    }
+  },
+  validatePackageUpdate: async (data) => {
+    try {
+      await updateSchema.validate(data, { abortEarly: false });
+      return { valid: true };
+    } catch (err) {
+      return { valid: false, error: err.errors.join(', ') };
     }
   }
 };
