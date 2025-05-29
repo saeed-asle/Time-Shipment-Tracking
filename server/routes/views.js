@@ -2,30 +2,24 @@ const fs = require('fs');
 const path = require('path');
 const { v4: uuidv4 } = require('uuid');
 const axios = require('axios');
-const { validatePackage,validatePackageUpdate } = require('../../utils/validator');
+const { validatePackage, validatePackageUpdate } = require('../../utils/validator');
 const LOCATIONIQ_API_KEY = 'pk.48c5c27b04afcdea04306cb5a825c7f9';
 const FILE = path.join(__dirname, '../data/delivery.json');
 
-
 const readFile = (callback, returnJson = false, filePath = FILE, encoding = 'utf8') => {
     fs.readFile(filePath, encoding, (err, data) => {
-            if (err) {
-                console.log(err);
-            }
-            if (!data) data="{}";
-            callback(returnJson ? JSON.parse(data) : data);
-       });
+        if (err) console.log(err);
+        if (!data) data = '{}';
+        callback(returnJson ? JSON.parse(data) : data);
+    });
 };
 
 const writeFile = (fileData, callback, filePath = FILE, encoding = 'utf8') => {
-        fs.writeFile(filePath, fileData, encoding, (err) => {
-            if (err) {
-                console.log(err);
-            }
-            callback();
-        });
-    };
-
+    fs.writeFile(filePath, fileData, encoding, (err) => {
+        if (err) console.log(err);
+        callback();
+    });
+};
 
 module.exports = {
     create_package: async (req, res) => {
@@ -43,18 +37,16 @@ module.exports = {
         try {
             const locRes = await axios.get('https://us1.locationiq.com/v1/search', {
                 params: {
-                key: LOCATIONIQ_API_KEY,
-                q: fullAddress,
-                format: 'json'
+                    key: LOCATIONIQ_API_KEY,
+                    q: fullAddress,
+                    format: 'json'
                 }
             });
 
             const { lat, lon } = locRes.data[0];
             packageData.customer.address.lat = parseFloat(lat);
             packageData.customer.address.lon = parseFloat(lon);
-
-        } 
-        catch (err) {
+        } catch (err) {
             return res.status(500).json({ error: 'Address location conversion failed.' });
         }
 
@@ -62,22 +54,23 @@ module.exports = {
         packageData.id = newId;
 
         readFile((data) => {
-        if (!data[companyId]) {
-            data[companyId] = [];
-        }
+            if (!data[companyId]) {
+                data[companyId] = [];
+            }
 
-        const finalData = {
-            id: newId,
-            ...packageData
-        };
+            const finalData = {
+                id: newId,
+                ...packageData
+            };
 
-        data[companyId].push({ [newId]: finalData });
+            data[companyId].push({ [newId]: finalData });
 
-        writeFile(JSON.stringify(data, null, 2), () => {
-            res.status(201).json({ message: 'Package created', id: newId });
+            writeFile(JSON.stringify(data, null, 2), () => {
+                res.status(201).json({ message: 'Package created', id: newId });
             });
         }, true);
     },
+
     update_package: async (req, res) => {
         const packageId = req.params.packageid;
         const companyId = req.params.companyid;
@@ -94,25 +87,20 @@ module.exports = {
                 return res.status(404).json({ error: 'Company not found' });
             }
 
-            let found = false;
             const pkgObj = companyPackages.find(pkg => pkg[packageId]);
-
-            if (pkgObj) {
-                if (updateFields.eta) {
-                    pkgObj[packageId].eta = updateFields.eta;
-                }
-                if (updateFields.status) {
-                    pkgObj[packageId].status = updateFields.status;
-                }
-                found = true;
-            }
-
-            if (!found) {
+            if (!pkgObj) {
                 return res.status(404).json({ error: 'Package not found' });
             }
 
+            if (updateFields.eta) {
+                pkgObj[packageId].eta = updateFields.eta;
+            }
+            if (updateFields.status) {
+                pkgObj[packageId].status = updateFields.status;
+            }
+
             writeFile(JSON.stringify(data, null, 2), () => {
-            res.status(200).json({ message: 'Package updated successfully' });
+                res.status(200).json({ message: 'Package updated successfully' });
             });
         }, true);
     },
@@ -124,14 +112,15 @@ module.exports = {
             if (!companyPackages) {
                 return res.status(404).json({ error: 'Company not found' });
             }
-            
-            res.status(200).json({ companyPackages: companyPackages });
+
+            res.status(200).json({ companyPackages });
         }, true);
     },
+
     getPackage: async (req, res) => {
         const packageId = req.params.packageid;
-        const companyId = req.params.companyid;       
-         readFile((data) => {
+        const companyId = req.params.companyid;
+        readFile((data) => {
             const companyPackages = data[companyId];
             if (!companyPackages) {
                 return res.status(404).json({ error: 'Company not found' });
@@ -140,14 +129,16 @@ module.exports = {
             if (!packageData) {
                 return res.status(404).json({ error: 'Package not found' });
             }
-            
+
             res.status(200).json({ companyPackage: packageData });
         }, true);
     },
+
     AddLocationToPackage: async (req, res) => {
         const packageId = req.params.packageid;
-        const companyId = req.params.companyid;       
-         readFile((data) => {
+        const companyId = req.params.companyid;
+
+        readFile((data) => {
             const companyPackages = data[companyId];
             if (!companyPackages) {
                 return res.status(404).json({ error: 'Company not found' });
@@ -156,23 +147,25 @@ module.exports = {
             if (!packageData) {
                 return res.status(404).json({ error: 'Package not found' });
             }
-            if(!packageData[packageId].path){
+
+            if (!packageData[packageId].path) {
                 packageData[packageId].path = [];
             }
+
             const existingPath = packageData[packageId].path;
-            existingPath.findIndex = existingPath.findIndex(loc => loc.lon === req.body.lon && loc.lat === req.body.lat);
-            if(existingPath.findIndex !== -1){
+            const existingIndex = existingPath.findIndex(loc =>
+                loc.lon === req.body.lon && loc.lat === req.body.lat
+            );
+
+            if (existingIndex !== -1) {
                 return res.status(400).json({ error: 'Location already exists in the package path' });
             }
+
             existingPath.push({ lon: req.body.lon, lat: req.body.lat });
+
             writeFile(JSON.stringify(data, null, 2), () => {
                 res.status(200).json({ message: 'Location added to package path successfully' });
             });
-
-            
-            res.status(200).json({ companyPackage: packageData });
         }, true);
     }
-
 };
-

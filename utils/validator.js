@@ -10,7 +10,6 @@ const packageSchema = yup.object({
     address: yup.object({
       street: yup.string().required(),
       number: yup.number().required(),
-      apartment: yup.string().required(),
       city: yup.string().required(),
     }).required()
   }).required(),

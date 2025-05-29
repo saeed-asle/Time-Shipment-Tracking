@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Package List</title>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.5/dist/jquery.validate.min.js"></script>
+    <style>
+        table, th, td {
+            border: 1px solid black;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 10px;
+        }
+        .btn {
+            margin: 2px;
+            padding: 5px 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Packages</h1>
+
+    <button id="add-package-top" class="btn">Add Package</button>
+    <table id="packages-table">
+        <thead>
+            <tr>
+                <th>Package ID</th>
+                <th>SKU</th>
+                <th>Name</th>
+                <th>Customer ID</th>
+                <th>Opened</th>
+                <th>ETA</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Packages will be inserted here -->
+        </tbody>
+    </table>
+    <button id="add-package-bottom" class="btn">Add Package</button>
+
+    <script src="/script.js"></script>
+</body>
+</html>
