@@ -1,8 +1,15 @@
 const yup = require('yup');
 
+const isToday = (date) => {
+  const today = new Date();
+  return date.getFullYear() === today.getFullYear() &&
+         date.getMonth() === today.getMonth() &&
+         date.getDate() === today.getDate();
+};
+
 const packageSchema = yup.object({
-  companyId: yup.number().min(1).max(10).required(), 
   prod_id: yup.string().required(),
+
   customer: yup.object({
     id: yup.string().required(),
     name: yup.string().required(),
@@ -13,9 +20,28 @@ const packageSchema = yup.object({
       city: yup.string().required(),
     }).required()
   }).required(),
-  start_date: yup.date().required(),
-  eta: yup.date().required(),
+
+  start_date: yup.date()
+    .nullable()
+    .transform((value, originalValue) => {
+      return originalValue === '' || originalValue === undefined || originalValue === null
+        ? new Date() // Default to now if missing
+        : new Date(originalValue);
+    })
+    .test('is-today', 'Start date must be today', function (value) {
+      return isToday(value);
+    }),
+
+  eta: yup.date()
+    .required()
+    .test('eta-after-start', 'ETA must be equal to or after start date', function (value) {
+      const { start_date } = this.parent;
+      const start = start_date || new Date(); // fallback to today if start_date was defaulted
+      return value >= start;
+    }),
+
   status: yup.string().oneOf(["packed", "shipped", "intransit", "delivered"]).required(),
+
   path: yup.array().of(
     yup.object({
       lon: yup.number().required(),
@@ -23,26 +49,31 @@ const packageSchema = yup.object({
     })
   ).default([])
 });
+
+
 const updateSchema = yup.object({
   eta: yup.date().optional(),
   status: yup.string().oneOf(["packed", "shipped", "intransit", "delivered"]).optional()
 });
 
+const paramCompanySchema = yup.object({
+  companyid: yup.number().min(1).max(10).required()
+});
+
+const paramCompanyPackageSchema = yup.object({
+  companyid: yup.number().min(1).max(10).required(),
+  packageid: yup.string().required()
+});
+
+const addLocationSchema = yup.object({
+    lat: yup.number().required(),
+    lon: yup.number().required()
+});
+
 module.exports = {
-  validatePackage: async (data) => {
-    try {
-      await packageSchema.validate(data, { abortEarly: false });
-      return { valid: true };
-    } catch (err) {
-      return { valid: false, error: err.errors.join(', ') };
-    }
-  },
-  validatePackageUpdate: async (data) => {
-    try {
-      await updateSchema.validate(data, { abortEarly: false });
-      return { valid: true };
-    } catch (err) {
-      return { valid: false, error: err.errors.join(', ') };
-    }
-  }
+  packageSchema,
+  updateSchema,
+  paramCompanySchema,
+  paramCompanyPackageSchema,
+  addLocationSchema
 };
