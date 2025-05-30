@@ -1,3 +1,19 @@
+function showToast(message, type = 'default', duration = 3000) {
+  const $toast = $('#toast');
+
+  $toast
+    .removeClass('hidden success error')
+    .addClass(type === 'success' ? 'success' : type === 'error' ? 'error' : '')
+    .text(message)
+    .removeClass('hidden');
+
+  setTimeout(() => {
+    $toast.addClass('hidden').removeClass('success error');
+  }, duration);
+}
+
+
+
 $(document).ready(function () {
     const pathParts = window.location.pathname.split('/');
     const companyId = parseInt(pathParts[pathParts.length - 1], 10);
@@ -113,29 +129,77 @@ function closeLocationModal() {
         openLocationModal(pkgId);
     }
 
-    $('#edit-form').on('submit', function (e) {
-        e.preventDefault();
-        if (!currentEditPkgId) return;
+$('#edit-form').on('submit', function (e) {
+    e.preventDefault();
+    if (!currentEditPkgId) return;
 
-        const eta = $('#edit-eta').val();
-        const status = $('#edit-status').val();
+    const eta = $('#edit-eta').val();
+    const status = $('#edit-status').val();
 
-        const update = {};
-        if (eta) update.eta = eta;
-        if (status) update.status = status;
+    // Get the existing data from the edit button
+    const editBtn = $(`.edit-btn[data-id="${currentEditPkgId}"]`);
+    const originalEta = editBtn.data('eta');
+    const originalStatus = editBtn.data('status');
+    console.log('Original ETA:', originalEta, 'Original Status:', originalStatus);
 
-        $.ajax({
-            url: `${apiBase}/${currentEditPkgId}`,
-            method: 'PUT',
-            contentType: 'application/json',
-            data: JSON.stringify(update),
-            success: () => {
-                closeEditModal();
-                loadPackages();
-            },
-            error: () => alert('Update failed')
-        });
+const update = {};
+
+// Normalize and compare eta
+if (eta) {
+    const etaOnly = new Date(eta).toISOString().split('T')[0];
+    const originalEtaOnly = originalEta ? new Date(originalEta).toISOString().split('T')[0] : null;
+
+    if (etaOnly !== originalEtaOnly) {
+        update.eta = eta;
+    }
+}
+
+// Compare status normally
+if (status && status !== originalStatus) {
+    update.status = status;
+}
+
+    // Do not send the request if nothing changed
+    if (Object.keys(update).length === 0) {
+        showToast('No changes detected', 'error');
+        return;
+    }
+
+    $.ajax({
+        url: `${apiBase}/${currentEditPkgId}`,
+        method: 'PUT',
+        contentType: 'application/json',
+        data: JSON.stringify(update),
+        success: (response) => {
+            showToast(response.message || 'Package updated successfully','success');
+
+            const row = $(`#package-table tbody tr`).filter(function () {
+                return $(this).find('td:first a').text() == currentEditPkgId;
+            });
+
+            if (row.length) {
+                if (update.eta) {
+                    const etaFormatted = new Date(update.eta).toLocaleDateString();
+                    row.find('td').eq(5).text(etaFormatted); // ETA column index 5
+                }
+                if (update.status) {
+                    row.find('td').eq(6).text(update.status); // Status column index 6
+                }
+
+                // Update button data attributes
+                if (update.eta) editBtn.data('eta', update.eta);
+                if (update.status) editBtn.data('status', update.status);
+            }
+
+            closeEditModal();
+        },
+error: (xhr) => {
+    const errMsg = xhr.responseJSON?.error || 'Location already exists';
+    showToast(errMsg, 'error');}
     });
+});
+
+
 
 $('#location-form').on('submit', function (e) {
     e.preventDefault();
@@ -159,25 +223,55 @@ $('#location-form').on('submit', function (e) {
         `)
         .removeClass('hidden')
         .addClass('visible');
+    
 
-    $('#confirm-location').on('click', () => {
-        $.ajax({
-            url: `${apiBase}/${currentLocationPkgId}/path`,
-            method: 'PUT',
-            contentType: 'application/json',
-            data: JSON.stringify({ lat: data.lat, lon: data.lon }),
-            success: () => {
-                closeLocationModal();
-                loadPackages();
-            },
-            error: () => alert('Failed to add location.')
-        });
+$('#confirm-location').on('click', () => {
+    $.ajax({
+        url: `${apiBase}/${currentLocationPkgId}/path`,
+        method: 'PUT',
+        contentType: 'application/json',
+        data: JSON.stringify({ lat: data.lat, lon: data.lon }),
+        success: (response) => {
+            showToast(response.message || 'Package updated successfully', 'success');
+            const row = $('#package-list tbody tr').filter(function () {
+                return $(this).find('td:first a.show-path').text() == currentLocationPkgId;
+            });
+
+            if (row.length) {
+                // Find the path link <a> element with data-path
+                const pathLink = row.find('td:first a.show-path');
+                
+                // Decode current path
+                let currentPath = [];
+                try {
+                    currentPath = JSON.parse(decodeURIComponent(pathLink.data('path')));
+                } catch(e) {
+                    console.warn('Failed to parse existing path data:', e);
+                }
+
+                // Append new location
+                currentPath.push({ lat: data.lat, lon: data.lon });
+
+                // Update the data-path attribute with the new path (encoded)
+                pathLink.data('path', encodeURIComponent(JSON.stringify(currentPath)));
+
+                // Also update the attribute in the DOM so jQuery data stays consistent
+                pathLink.attr('data-path', encodeURIComponent(JSON.stringify(currentPath)));
+            }
+
+            closeLocationModal();
+        },
+error: (xhr) => {
+    const errMsg = xhr.responseJSON?.error || 'Location already exists';
+    showToast(errMsg, 'error');}
     });
+});
+
 },
 
         error: (xhr) => {
-            const errMsg = xhr.responseJSON?.error || 'Search failed.';
-            alert(errMsg);
+    const errMsg = xhr.responseJSON?.error || 'Search failed.';
+    showToast(errMsg, 'error');
         },
         complete: () => {
             $('#location-form button').prop('disabled', false).text('Add');
@@ -194,17 +288,18 @@ $('#package-form').validate({
         const etaDate = new Date(etaStr);
 
         if (startDateStr && startDateStr !== todayStr) {
-            alert("Start Date must be today's date.");
+    showToast("Start Date must be today's date.", 'error');
             return;
         }
 
         if (etaDate < startDate) {
-            alert("ETA must be today or after the Start Date.");
+    showToast("ETA must be today or after the Start Date.", 'error');
             return;
         }
 
         const formData = {
             prod_id: form.prod_id.value,
+            name: form.name.value,
             customer: {
                 id: form.customerId.value,
                 name: form.customerName.value,
@@ -225,13 +320,66 @@ $('#package-form').validate({
             method: 'POST',
             contentType: 'application/json',
             data: JSON.stringify(formData),
-            success: () => {
-                alert('Package added!');
-                closeAddModal();
-                loadPackages();
-            },
+success: (response) => {
+showToast(`Package added! ID: ${response.id}`, 'success');
+    closeAddModal();
+
+    const newPackage = {
+        id: response.id,
+        prod_id: formData.prod_id,
+        name: formData.customer.name,
+        customer: formData.customer,
+        start_date: formData.start_date,
+        eta: formData.eta,
+        status: formData.status,
+        path: []
+    };
+
+    const container = $('#package-list tbody');
+
+    const eta = new Date(newPackage.eta).toLocaleDateString();
+    const startDate = new Date(newPackage.start_date).toLocaleString();
+    const customer = encodeURIComponent(JSON.stringify(newPackage.customer));
+    const path = encodeURIComponent(JSON.stringify(newPackage.path));
+
+    const row = $(`
+        <tr>
+            <td><a href="#" class="show-path" data-path="${path}">${newPackage.id}</a></td>
+            <td>${newPackage.prod_id}</td>
+            <td>${newPackage.name}</td>
+            <td><a href="#" class="show-customer" data-info="${customer}">${newPackage.customer.id}</a></td>
+            <td>${startDate}</td>
+            <td>${eta}</td>
+            <td>${newPackage.status}</td>
+            <td>
+                <button class="btn edit-btn" data-id="${newPackage.id}" data-eta="${newPackage.eta}" data-status="${newPackage.status}">✏️</button>
+                <button class="btn add-loc-btn" data-id="${newPackage.id}">📍</button>
+                <button class="btn view-map-btn" data-id="${newPackage.id}">🗺️</button>
+            </td>
+        </tr>
+    `);
+
+    // Insert in sorted order (start_date descending)
+    let inserted = false;
+    const newStart = new Date(newPackage.start_date).getTime();
+
+    container.find('tr').each(function() {
+        const existingStart = new Date($(this).find('td').eq(4).text()).getTime();
+        if (existingStart < newStart) {
+            $(this).before(row);
+            inserted = true;
+            return false; // break loop
+        }
+    });
+
+    if (!inserted) {
+        container.append(row); // append if no older date found
+    }
+},
+
+
             error: (xhr) => {
-                alert(`Failed to add package.\n${xhr.responseJSON?.error || 'Unknown error'}`);
+    showToast(`Failed to add package. ${xhr.responseJSON?.error || 'Unknown error'}`, 'error');
             }
         });
     }

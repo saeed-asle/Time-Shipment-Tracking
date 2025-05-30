@@ -2,10 +2,12 @@ const fs = require('fs');
 const path = require('path');
 const { v4: uuidv4 } = require('uuid');
 const axios = require('axios');
-const { validatePackage, validatePackageUpdate } = require('../../utils/validator');
-const LOCATIONIQ_API_KEY = 'pk.48c5c27b04afcdea04306cb5a825c7f9';
-const YOUR_GEOAPIFY_API_KEY ='09bbb572d2d049d6846ba1961d80e3d3';
+require('dotenv').config();
+
+
 const FILE = path.join(__dirname, '../data/delivery.json');
+const LOCATIONIQ_API_KEY = process.env.LOCATIONIQ_API_KEY;
+const YOUR_GEOAPIFY_API_KEY = process.env.GEOAPIFY_API_KEY;
 
 const readFile = (callback, returnJson = false, filePath = FILE, encoding = 'utf8') => {
     fs.readFile(filePath, encoding, (err, data) => {
@@ -49,14 +51,20 @@ module.exports = {
     const newId = uuidv4();
     packageData.id = newId;
 
-    readFile((data) => {
-      if (!data[companyId]) data[companyId] = [];
-      data[companyId].push({ [newId]: packageData });
+readFile((data) => {
+  if (!data[companyId]) data[companyId] = [];
+  data[companyId].push({ [newId]: packageData });
 
-      writeFile(JSON.stringify(data, null, 2), () => {
-        res.status(201).json({ message: 'Package created', id: newId });
-      });
-    }, true);
+  data[companyId].sort((a, b) => {
+    const pkgA = Object.values(a)[0];
+    const pkgB = Object.values(b)[0];
+    return pkgB.start_date - pkgA.start_date;
+  });
+
+  writeFile(JSON.stringify(data, null, 2), () => {
+    res.status(201).json({ message: 'Package created', id: newId });
+  });
+}, true);
   },
 
   update_package: async (req, res) => {
@@ -85,17 +93,27 @@ getPackages: async (req, res) => {
     const companyPackages = data[companyid];
     if (!companyPackages) return res.status(404).json({ error: 'Company not found' });
 
-    const convertedPackages = companyPackages.map(pkgObj => {
-      const key = Object.keys(pkgObj)[0];
-      const pkg = pkgObj[key];
-      pkg.start_date = new Date(pkg.start_date).toISOString();
-      pkg.eta = new Date(pkg.eta).toISOString();
-      return { [key]: pkg };
-    });
+    const sortedPackages = companyPackages
+      .map(pkgObj => {
+        const key = Object.keys(pkgObj)[0];
+        const pkg = pkgObj[key];
+        return { key, pkg }; // keep both key and actual pkg object
+      })
+      .sort((a, b) => b.pkg.start_date - a.pkg.start_date) // sort by real start_date
+      .map(({ key, pkg }) => {
+        return {
+          [key]: {
+            ...pkg,
+            start_date: new Date(pkg.start_date).toISOString(),
+            eta: new Date(pkg.eta).toISOString()
+          }
+        };
+      });
 
-    res.status(200).json({ companyPackages: convertedPackages });
+    res.status(200).json({ companyPackages: sortedPackages });
   }, true);
 },
+
 
  getPackage: async (req, res) => {
   const { companyid, packageid } = req.params;
@@ -197,25 +215,32 @@ SearchLocationForPackage: async (req, res) => {
   }
 },
 
-  getStaticMap: async (req, res) => {
-    const { companyid, packageid } = req.params;
+getStaticMap: async (req, res) => {
+  const { companyid, packageid } = req.params;
 
-    readFile((data) => {
-      const pkgData = data[companyid]?.find(pkg => pkg[packageid]);
-      if (!pkgData) return res.status(404).json({ error: 'Package not found' });
+  readFile((data) => {
+    const pkgData = data[companyid]?.find(pkg => pkg[packageid]);
+    if (!pkgData) return res.status(404).json({ error: 'Package not found' });
 
-      const path = pkgData[packageid].path;
-      if (!path || path.length === 0) {
-        return res.status(400).json({ error: 'No path to display' });
-      }
+    const path = pkgData[packageid].path;
+    if (!path || path.length === 0) {
+      return res.status(400).json({ error: 'No path to display' });
+    }
 
-      const markers = path.map((loc, i) =>
-        `lonlat:${loc.lon},${loc.lat};type:material;color:%231f63e6;size:x-large;text:${i + 1};icon:cloud;icontype:awesome;whitecircle:no`
-      ).join('|');
+    // Calculate bounds: [minLon, minLat, maxLon, maxLat]
+    const lats = path.map(loc => parseFloat(loc.lat));
+    const lons = path.map(loc => parseFloat(loc.lon));
+    const bounds = `lonlat:${Math.min(...lons)},${Math.min(...lats)},${Math.max(...lons)},${Math.max(...lats)}`;
 
-      const geoapifyUrl = `https://maps.geoapify.com/v1/staticmap?style=osm-bright&width=600&height=400&zoom=12&marker=${markers}&apiKey=${YOUR_GEOAPIFY_API_KEY}`;
+    // Create markers
+    const markers = path.map((loc, i) =>
+      `lonlat:${loc.lon},${loc.lat};type:material;color:%231f63e6;size:x-large;text:${i + 1};icon:cloud;icontype:awesome;whitecircle:no`
+    ).join('|');
 
-      res.redirect(geoapifyUrl);
-    }, true);
-  }
+    const geoapifyUrl = `https://maps.geoapify.com/v1/staticmap?style=osm-bright&width=600&height=400&bounds=${bounds}&marker=${markers}&apiKey=${YOUR_GEOAPIFY_API_KEY}`;
+
+    res.redirect(geoapifyUrl);
+  }, true);
+}
+
 };

@@ -25,21 +25,21 @@ const packageSchema = yup.object({
     .nullable()
     .transform((value, originalValue) => {
       return originalValue === '' || originalValue === undefined || originalValue === null
-        ? new Date() // Default to now if missing
+        ? new Date() 
         : new Date(originalValue);
     })
-    .test('is-today', 'Start date must be today', function (value) {
-      return isToday(value);
-    }),
-
+    // .test('is-today', 'Start date must be today', function (value) {
+    //   return isToday(value);
+    // }),
+,
   eta: yup.date()
     .required()
-    .test('eta-after-start', 'ETA must be equal to or after start date', function (value) {
-      const { start_date } = this.parent;
-      const start = start_date || new Date(); // fallback to today if start_date was defaulted
-      return value >= start;
-    }),
-
+    // .test('eta-after-start', 'ETA must be equal to or after start date', function (value) {
+    //   const { start_date } = this.parent;
+    //   const start = start_date || new Date(); 
+    //   return value >= start;
+    // }),
+,
   status: yup.string().oneOf(["packed", "shipped", "intransit", "delivered"]).required(),
 
   path: yup.array().of(
@@ -52,7 +52,7 @@ const packageSchema = yup.object({
 
 
 const updateSchema = yup.object({
-  eta: yup.date().optional(),
+  eta: yup.date().required(),
   status: yup.string().oneOf(["packed", "shipped", "intransit", "delivered"]).optional()
 });
 

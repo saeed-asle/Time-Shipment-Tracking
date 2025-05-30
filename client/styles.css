@@ -251,3 +251,28 @@ h1 {
   background-color: #1565c0;
   transform: scale(1.03);
 }
+.toast {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: #323232;
+  color: white;
+  padding: 12px 20px;
+  border-radius: 6px;
+  opacity: 0.95;
+  z-index: 10000;
+  font-size: 14px;
+  transition: opacity 0.3s ease;
+}
+
+.toast.hidden {
+  display: none;
+}
+
+.toast.success {
+  background: #2e7d32;
+}
+
+.toast.error {
+  background: #c62828;
+}

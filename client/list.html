@@ -9,14 +9,17 @@
 </head>
 <body>
   <div class="container">
+    <div id="toast" class="toast hidden"></div>
+
     <h1>📦 Package List</h1>
+    
     <button id="add-package-top" class="btn primary">➕ Add Package</button>
 
     <div id="package-list" class="table-container">
       <table id="package-table">
         <thead>
           <tr>
-            <th>ID</th>
+            <th>Packge</th>
             <th>SKU</th>
             <th>Name</th>
             <th>Customer ID</th>
@@ -99,6 +102,9 @@
     <form id="package-form">
       <label for="prod_id">SKU</label>
       <input type="text" name="prod_id" required />
+
+      <label for="customerName">Name</label>
+      <input type="text" name="name" required />
 
       <label for="customerName">Customer Name</label>
       <input type="text" name="customerName" required />
