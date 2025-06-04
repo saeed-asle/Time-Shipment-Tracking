@@ -1,11 +1,17 @@
 module.exports = (bodySchema = null, paramSchema = null) => async (req, res, next) => {
   try {
     if (paramSchema) {
-      await paramSchema.validate(req.params, { abortEarly: false });
+      req.params = await paramSchema.validate(req.params, {
+        abortEarly: false,
+        stripUnknown: true
+      });
     }
 
     if (bodySchema) {
-      await bodySchema.validate(req.body, { abortEarly: false });
+      req.body = await bodySchema.validate(req.body, {
+        abortEarly: false,
+        stripUnknown: true
+      });
     }
 
     next();

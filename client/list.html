@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Package List</title>
-  <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="/styles.css" />
   <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.5/dist/jquery.validate.min.js"></script>
 </head>
@@ -12,14 +12,14 @@
     <div id="toast" class="toast hidden"></div>
 
     <h1>📦 Package List</h1>
-    
+
     <button id="add-package-top" class="btn primary">➕ Add Package</button>
 
     <div id="package-list" class="table-container">
       <table id="package-table">
         <thead>
           <tr>
-            <th>Packge</th>
+            <th>Package</th>
             <th>SKU</th>
             <th>Name</th>
             <th>Customer ID</th>
@@ -31,20 +31,22 @@
         </thead>
         <tbody></tbody>
       </table>
-          <button id="add-package-buttom" class="btn primary">➕ Add Package</button>
-
+      <button id="add-package-bottom" class="btn primary">➕ Add Package</button>
     </div>
 
+    <!-- Customer Modal -->
     <div id="customer-modal" class="modal hidden">
       <div class="modal-content">
         <span class="close-btn">&times;</span>
         <h2>Customer Details</h2>
         <p><strong>Name:</strong> <span id="cust-name"></span></p>
         <p><strong>Email:</strong> <span id="cust-email"></span></p>
-        <p><strong>Address:</strong> <span id="cust-address"></span></p>
+<p><strong>Address:</strong></p>
+<ul id="cust-address"></ul>
       </div>
     </div>
 
+    <!-- Edit Package Modal -->
     <div id="edit-modal" class="modal hidden">
       <div class="modal-content" id="edit-modal-content">
         <span class="close-btn" id="close-edit-modal">&times;</span>
@@ -52,7 +54,7 @@
         <form id="edit-form">
           <div class="form-group">
             <label for="edit-eta">ETA:</label>
-            <input type="date" id="edit-eta" name="eta">
+            <input type="date" id="edit-eta" name="eta" />
           </div>
           <div class="form-group">
             <label for="edit-status">Status:</label>
@@ -68,81 +70,90 @@
         </form>
       </div>
     </div>
+
+    <!-- Location Modal -->
     <div id="location-modal" class="modal hidden">
       <div class="modal-content">
         <span class="close-btn" id="close-location-modal">&times;</span>
         <h2>Add Location</h2>
         <form id="location-form">
-                 <form id="location-form">
           <div class="form-group">
             <label for="location-input">Location (e.g., Tel Aviv, Israel):</label>
-            <input type="text" id="location-input" name="location" required>
+            <input type="text" id="location-input" name="location" required />
             <div id="location-suggestion" class="suggestion hidden"></div>
-
           </div>
           <button type="submit" class="btn primary">Add</button>
         </form>
+      </div>
+    </div>
+
+    <!-- Path Modal -->
+    <div id="path-modal" class="modal hidden">
+      <div class="modal-content">
+        <span class="close-btn">&times;</span>
+        <h2>Package Path</h2>
+        <div id="path-details"></div>
+      </div>
+    </div>
+
+    <!-- Add Package Modal -->
+    <div id="add-package-modal" class="modal hidden">
+      <div class="modal-content">
+        <span class="close-btn" id="close-add-modal">&times;</span>
+        <h2>Add New Package</h2>
+        <form id="package-form">
+          <label for="prod_id">SKU</label>
+          <input type="text" name="prod_id" required />
+
+          <label for="name">Name</label>
+          <input type="text" name="name" required />
+
+          <label for="customerName">Customer Name</label>
+          <input type="text" name="customerName" required />
+
+          <label for="customerId">Customer ID</label>
+          <input type="text" name="customerId" required />
+
+          <label for="email">Email</label>
+          <input type="email" name="email" required />
+
+          <label for="street">Street</label>
+          <input type="text" name="street" required />
+
+          <label for="number">Street Number</label>
+          <input type="number" name="number" required />
+
+          <label for="city">City</label>
+          <input type="text" name="city" required />
+
+          <label for="start_date">Start Date</label>
+          <input type="date" name="start_date" required />
+
+          <label for="eta">Estimated Arrival</label>
+          <input type="date" name="eta" required />
+
+          <label for="status">Status</label>
+          <select name="status" required>
+            <option value="packed">Packed</option>
+            <option value="shipped">Shipped</option>
+            <option value="intransit">In Transit</option>
+            <option value="delivered">Delivered</option>
+          </select>
+
+          <button type="submit">Submit</button>
         </form>
       </div>
     </div>
-  </div>
-  <div id="path-modal" class="modal hidden">
-  <div class="modal-content">
-    <span class="close-btn" onclick="toggleModal('path-modal', false)">×</span>
-    <h2>Package Path</h2>
-    <div id="path-details">
+    <div id="map-modal" class="modal hidden">
+      <div class="modal-content map-modal-content">
+        <div class="modal-body">
+          <div id="map-loader" class="spinner"></div>
+          <img id="map-image" src="" alt="Map" style="display: none;" />
+        </div>
+      </div>
     </div>
   </div>
-</div>
 
-<div id="add-package-modal" class="modal hidden">
-  <div class="modal-content">
-    <span class="close-btn" id="close-add-modal">&times;</span>
-    <h2>Add New Package</h2>
-    <form id="package-form">
-      <label for="prod_id">SKU</label>
-      <input type="text" name="prod_id" required />
-
-      <label for="customerName">Name</label>
-      <input type="text" name="name" required />
-
-      <label for="customerName">Customer Name</label>
-      <input type="text" name="customerName" required />
-
-      <label for="customerId">Customer ID</label>
-      <input type="text" name="customerId" required />
-
-      <label for="email">Email</label>
-      <input type="email" name="email" required />
-
-      <label for="street">Street</label>
-      <input type="text" name="street" required />
-
-      <label for="number">Street Number</label>
-      <input type="number" name="number" required />
-
-      <label for="city">City</label>
-      <input type="text" name="city" required />
-
-      <label for="start_date">Start Date</label>
-      <input type="date" name="start_date" required />
-
-      <label for="eta">Estimated Arrival</label>
-      <input type="date" name="eta" required />
-
-      <label for="status">Status</label>
-      <select name="status" required>
-        <option value="packed">Packed</option>
-        <option value="shipped">Shipped</option>
-        <option value="intransit">In Transit</option>
-        <option value="delivered">Delivered</option>
-      </select>
-
-      <button type="submit">Submit</button>
-    </form>
-  </div>
-</div>
-
-  <script src="/script.js"></script>
+  <script src="/main.js" type="module"></script>
 </body>
 </html>

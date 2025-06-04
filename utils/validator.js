@@ -9,7 +9,7 @@ const isToday = (date) => {
 
 const packageSchema = yup.object({
   prod_id: yup.string().required(),
-
+  name: yup.string().required(),
   customer: yup.object({
     id: yup.string().required(),
     name: yup.string().required(),
@@ -28,18 +28,18 @@ const packageSchema = yup.object({
         ? new Date() 
         : new Date(originalValue);
     })
-    // .test('is-today', 'Start date must be today', function (value) {
-    //   return isToday(value);
-    // }),
-,
+    .test('is-today', 'Start date must be today', function (value) {
+      return isToday(value);
+    }),
+
   eta: yup.date()
     .required()
-    // .test('eta-after-start', 'ETA must be equal to or after start date', function (value) {
-    //   const { start_date } = this.parent;
-    //   const start = start_date || new Date(); 
-    //   return value >= start;
-    // }),
-,
+    .test('eta-after-start', 'ETA must be equal to or after start date', function (value) {
+      const { start_date } = this.parent;
+      const start = start_date || new Date(); 
+      return value >= start;
+    }),
+
   status: yup.string().oneOf(["packed", "shipped", "intransit", "delivered"]).required(),
 
   path: yup.array().of(
@@ -47,7 +47,7 @@ const packageSchema = yup.object({
       lon: yup.number().required(),
       lat: yup.number().required()
     })
-  ).default([])
+  )
 });
 
 
