@@ -5,7 +5,8 @@ import {
   loadPackages, 
   fetchStaticMap, 
   searchLocation, 
-  confirmLocation 
+  confirmLocation ,
+  getPackage
 } from './api.js';
 
 import { showToast, showMapImage } from './ui.js';
@@ -95,12 +96,12 @@ function handleAddSubmit(e) {
     status: form.status.value
   };
 
-  addPackage(formData, (response) => {
-    showToast(`Package added! ID: ${response.id}`, 'success');
-    $('#add-package-modal').addClass('hidden');
-     $('#package-form')[0].reset(); 
-    loadPackages();
-  });
+addPackage(formData, (response) => {
+  showToast(`Package added! ID: ${response.id}`, 'success');
+  $('#add-package-modal').addClass('hidden');
+  $('#package-form')[0].reset();
+  getPackage(response.id); // 🔄 Just call, no .then needed
+})
 }
 
 function handleCustomerInfo(e) {

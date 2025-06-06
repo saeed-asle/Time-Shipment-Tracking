@@ -2,36 +2,64 @@
 import { showToast, updatePackageRow, appendPackageRow } from './ui.js';
 
 export function loadPackages() { 
+  $.ajax({
+    url: apiBase,
+    method: 'GET',
+    success: (data) => {
+      // Updated to reflect new format
+      const packages = data.map(p => Object.values(p)[0]);
+
+      // Sort by start_date descending
+      packages.sort((a, b) => b.start_date - a.start_date);
+
+      const container = $('#package-list tbody').empty();
+
+      if (packages.length === 0) {
+        const row = $(`
+          <tr>
+            <td colspan="8" style="text-align: center; color: #888;">
+              No packages available
+            </td>
+          </tr>
+        `);
+        container.append(row);
+      } else {
+        packages.forEach(pkg => appendPackageRow(pkg, container));
+      }
+    },
+    error: (xhr) => {
+      const msg = xhr.responseJSON?.error || 'Failed to load packages';
+      showToast(msg, 'error');
+    }
+  });
+}
+
+export function getPackage(packageId) {
+  return $.ajax({
+    url: `${apiBase}/${packageId}`,
+    method: 'GET',
+    success: (pkgData) => {
+      const pkg = Object.values(pkgData)[0];
+      const container = $('#package-list tbody');
+      appendPackageRow(pkg, container); 
+    },
+    error: (xhr) => {
+      showToast(xhr.responseJSON?.error || 'Failed to load package', 'error');
+    }
+  });
+}
+export function addPackage(data, successCb) {
     $.ajax({
         url: apiBase,
-        method: 'GET',
-        success: (data) => {
-            const packages = data.companyPackages.map(p => Object.values(p)[0]);
-            packages.sort((a, b) => new Date(b.openDate) - new Date(a.openDate));
-
-            const container = $('#package-list tbody').empty();
-
-            if (packages.length === 0) {
-                const row = $(`
-                    <tr>
-                        <td colspan="8" style="text-align: center; color: #888;">
-                            No packages available
-                        </td>
-                    </tr>
-                `);
-                container.append(row);
-            } else {
-                packages.forEach(pkg => appendPackageRow(pkg, container));
-            }
-        },
+        method: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify(data),
+        success: successCb,
         error: (xhr) => {
-            const msg = xhr.responseJSON?.error || 'Failed to load packages';
-            showToast(msg, 'error');
+            showToast(`Failed to add package. ${xhr.responseJSON?.error || 'Unknown error'}`, 'error');
         }
     });
 }
-
-
 export function updatePackage(id, update, successCb) {
     $.ajax({
         url: `${apiBase}/${id}`,
@@ -49,18 +77,7 @@ export function updatePackage(id, update, successCb) {
     });
 }
 
-export function addPackage(data, successCb) {
-    $.ajax({
-        url: apiBase,
-        method: 'POST',
-        contentType: 'application/json',
-        data: JSON.stringify(data),
-        success: successCb,
-        error: (xhr) => {
-            showToast(`Failed to add package. ${xhr.responseJSON?.error || 'Unknown error'}`, 'error');
-        }
-    });
-}
+
 
 
 export function fetchStaticMap(packageId) {

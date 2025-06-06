@@ -47,28 +47,29 @@ create_package: async (req, res) => {
     const { lat, lon } = locRes.data[0];
     packageData.customer.address.lat = parseFloat(lat);
     packageData.customer.address.lon = parseFloat(lon);
+
+    // Ensure start_date and eta are stored as UNIX timestamps
     packageData.start_date = new Date(packageData.start_date).getTime();
     packageData.eta = new Date(packageData.eta).getTime();
+
   } catch (err) {
     return res.status(500).json({ error: 'Address location conversion failed.' });
   }
 
+  // Generate unique ID and construct final package object
   const newId = nanoid(10);
-  packageData.id = newId;
-
-  // Move `path` to the end of the object
-  let finalPackageData;
-  if ('path' in packageData) {
-    const { path, ...rest } = packageData;
-    finalPackageData = { ...rest, path }; // preserves user-provided path
-  } else {
-    finalPackageData = { ...packageData, path: [] }; // adds default only if missing
-  }
+  const finalPackageData = {
+    ...packageData,
+    id: newId,
+    path: packageData.path || []
+  };
 
   readFile((data) => {
     if (!data[companyId]) data[companyId] = [];
+
     data[companyId].push({ [newId]: finalPackageData });
 
+    // Optional: sort after insertion
     data[companyId].sort((a, b) => {
       const pkgA = Object.values(a)[0];
       const pkgB = Object.values(b)[0];
@@ -104,33 +105,25 @@ create_package: async (req, res) => {
 
 getPackages: async (req, res) => {
   const { companyid } = req.params;
+
   readFile((data) => {
     const companyPackages = data[companyid] || [];
 
-    const sortedPackages = companyPackages
-      .map(pkgObj => {
-        const key = Object.keys(pkgObj)[0];
-        const pkg = pkgObj[key];
-        return { key, pkg }; 
-      })
-      .sort((a, b) => b.pkg.start_date - a.pkg.start_date) 
-      .map(({ key, pkg }) => {
-        return {
-          [key]: {
-            ...pkg,
-            start_date: new Date(pkg.start_date).toISOString(),
-            eta: new Date(pkg.eta).toISOString()
-          }
-        };
-      });
+    const sortedPackages = companyPackages.sort((a, b) => {
+      const aPkg = a[Object.keys(a)[0]];
+      const bPkg = b[Object.keys(b)[0]];
+      return bPkg.start_date - aPkg.start_date;
+    });
 
-    res.status(200).json({ companyPackages: sortedPackages });
+    res.status(200).json(sortedPackages);
   }, true);
 },
 
 
- getPackage: async (req, res) => {
+
+getPackage: async (req, res) => {
   const { companyid, packageid } = req.params;
+
   readFile((data) => {
     const companyPackages = data[companyid];
     if (!companyPackages) return res.status(404).json({ error: 'Company not found' });
@@ -138,14 +131,10 @@ getPackages: async (req, res) => {
     const pkgObj = companyPackages.find(pkg => pkg[packageid]);
     if (!pkgObj) return res.status(404).json({ error: 'Package not found' });
 
-    const pkg = pkgObj[packageid];
-
-    pkg.start_date = new Date(pkg.start_date).toISOString();
-    pkg.eta = new Date(pkg.eta).toISOString();
-
-    res.status(200).json({ companyPackage: { [packageid]: pkg } });
+    res.status(200).json(pkgObj); 
   }, true);
 },
+
 
 
 AddLocationToPackage: async (req, res) => {
