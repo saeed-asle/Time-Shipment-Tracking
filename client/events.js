@@ -81,11 +81,11 @@ function handleAddSubmit(form) {
   const startDateStr = form.elements.start_date.value.trim();
   const etaStr = form.elements.eta.value.trim();
 
-  const startTimestamp = startDateStr 
-    ? new Date(startDateStr).getTime() 
-    : Date.now();
+  const startTimestamp = startDateStr
+    ? Math.floor(new Date(startDateStr).getTime() / 1000)
+    : Math.floor(Date.now() / 1000);
 
-  const etaTimestamp = new Date(etaStr).getTime();
+  const etaTimestamp = Math.floor(new Date(etaStr).getTime() / 1000);
 
   const formData = {
     prod_id: form.elements.prod_id.value,
@@ -100,8 +100,8 @@ function handleAddSubmit(form) {
         city: form.elements.city.value
       }
     },
-    start_date: startTimestamp,
-    eta: etaTimestamp,
+    start_date: startTimestamp, // now seconds
+    eta: etaTimestamp,          // now seconds
     status: form.elements.status.value
   };
 
@@ -109,9 +109,10 @@ function handleAddSubmit(form) {
     showToast(`Package added! ID: ${response.id}`, 'success');
     $('#add-package-modal').addClass('hidden');
     $('#package-form')[0].reset();
-    getPackage(response.id); 
+    getPackage(response.id);
   });
 }
+
 
 function handleCustomerInfo(e) {
   e.preventDefault();

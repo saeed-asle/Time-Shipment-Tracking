@@ -26,14 +26,12 @@ const writeFile = (fileData, callback, filePath = FILE, encoding = 'utf8') => {
 };
 
 module.exports = {
-create_package: async (req, res) => { 
+create_package: async (req, res) => {
   const companyId = parseInt(req.params.companyid);
-  const packageData = {
-    ...req.body,
-    companyId
-  };
+  const packageData = { ...req.body, companyId };
 
-  const fullAddress = `${packageData.customer.address.street} ${packageData.customer.address.number}, ${packageData.customer.address.city}`;
+  const { street, number, city } = packageData.customer.address;
+  const fullAddress = `${street} ${number}, ${city}`;
 
   try {
     const locRes = await axios.get('https://us1.locationiq.com/v1/search', {
@@ -47,39 +45,21 @@ create_package: async (req, res) => {
     const { lat, lon } = locRes.data[0];
     packageData.customer.address.lat = parseFloat(lat);
     packageData.customer.address.lon = parseFloat(lon);
-
-    // Ensure start_date and eta are stored as UNIX timestamps
-    packageData.start_date = new Date(packageData.start_date).getTime();
-    packageData.eta = new Date(packageData.eta).getTime();
-
   } catch (err) {
     return res.status(500).json({ error: 'Address location conversion failed.' });
   }
 
-  // Generate unique ID and construct final package object
   const newId = nanoid(10);
-const finalPackageData = {
-  id: newId,
-  name: packageData.name,
-  prod_id: packageData.prod_id,
-  customer: {
-    id: packageData.customer.id,
-    name: packageData.customer.name,
-    email: packageData.customer.email,
-    address: {
-      street: packageData.customer.address.street,
-      number: packageData.customer.address.number,
-      city: packageData.customer.address.city,
-      lat: packageData.customer.address.lat,
-      lon: packageData.customer.address.lon
-    }
-  },
-  start_date: Math.floor(new Date(packageData.start_date).getTime() / 1000),
-  eta: Math.floor(new Date(packageData.eta).getTime() / 1000),
-  status: packageData.status.trim(),
-  path: packageData.path || []
-};
-
+  const finalPackageData = {
+    id: newId,
+    name: packageData.name,
+    prod_id: packageData.prod_id,
+    customer: packageData.customer,
+    start_date: packageData.start_date,
+    eta: packageData.eta,
+    status: packageData.status.trim(),
+    path: packageData.path || []
+  };
 
   readFile((data) => {
     if (!data[companyId]) data[companyId] = [];
@@ -89,12 +69,6 @@ const finalPackageData = {
     data[companyId].sort((a, b) => {
       const pkgA = Object.values(a)[0];
       const pkgB = Object.values(b)[0];
-
-      if (pkgB.start_date === pkgA.start_date) {
-        // Maintain newer package first (push was last, so it's later in array => move up)
-        return -1;
-      }
-
       return pkgB.start_date - pkgA.start_date;
     });
 
@@ -102,8 +76,8 @@ const finalPackageData = {
       res.status(201).json({ message: 'Package created', id: newId });
     });
   }, true);
-}
-,
+},
+
 
   update_package: async (req, res) => {
     const { companyid, packageid } = req.params;
@@ -162,25 +136,6 @@ getPackage: async (req, res) => {
 AddLocationToPackage: async (req, res) => {
   const { companyid, packageid } = req.params;
   const { lat, lon } = req.body;
-  try {
-    const geoRes = await axios.get('https://us1.locationiq.com/v1/reverse.php', {
-      params: {
-        key: LOCATIONIQ_API_KEY,
-        lat,
-        lon,
-        format: 'json',
-        addressdetails: 1
-      }
-    });
-
-    const countryCode = geoRes.data.address?.country_code;
-    if (!countryCode || countryCode.toLowerCase() !== 'il') {
-      return res.status(400).json({ error: 'Location must be within Israel' });
-    }
-  } catch (err) {
-    console.error('Reverse geocoding failed:', err.message);
-    return res.status(500).json({ error: 'Failed to verify location' });
-  }
 
   readFile((data) => {
     const companyPackages = data[companyid];
@@ -201,8 +156,6 @@ AddLocationToPackage: async (req, res) => {
     });
   }, true);
 },
-
-
 
 SearchLocationForPackage: async (req, res) => {
   const { location } = req.body;
@@ -240,7 +193,6 @@ SearchLocationForPackage: async (req, res) => {
   }
 },
 
-
 getStaticMap: async (req, res) => {
   const { companyid, packageid } = req.params;
 
@@ -261,16 +213,11 @@ getStaticMap: async (req, res) => {
       `lonlat:${loc.lon},${loc.lat};type:material;color:%231f63e6;size:x-large;text:${i + 1};icon:cloud;icontype:awesome;whitecircle:no`
     ).join('|');
 
-    const geoapifyUrl = `https://maps.geoapify.com/v1/staticmap?style=osm-bright&width=600&height=400&bounds=${bounds}&marker=${markers}&apiKey=${process.env.GEOAPIFY_API_KEY}`;
+    const geoapifyUrl = `https://maps.geoapify.com/v1/staticmap?style=osm-bright&width=600&height=400&bounds=${bounds}&marker=${markers}&apiKey=${YOUR_GEOAPIFY_API_KEY}`;
 
     try {
-      // Fetch the image from Geoapify as a stream
       const response = await axios.get(geoapifyUrl, { responseType: 'stream' });
-
-      // Set the same content-type header to the response
       res.setHeader('Content-Type', response.headers['content-type']);
-
-      // Pipe the image stream directly to the response
       response.data.pipe(res);
     } catch (error) {
       console.error('Error fetching static map:', error);

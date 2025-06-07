@@ -1,43 +1,33 @@
-
-
 export function setupFormValidation() {
   $.validator.addMethod('etaAfterStart', function (value, element, paramSelector) {
     const startValue = $(paramSelector).val();
     const startDate = new Date(startValue);
     const etaDate = new Date(value);
 
-    if (isNaN(startDate.getTime()) || isNaN(etaDate.getTime())) {
-      return false;
-    }
-
-    return etaDate >= startDate;
+    return !isNaN(startDate) && !isNaN(etaDate) && etaDate >= startDate;
   }, 'ETA must be the same day or after the start date');
 
   $.validator.addMethod('atLeastOneChange', function () {
-    const etaInput = $('#edit-eta');
-    const statusInput = $('#edit-status');
+    const eta = $('#edit-eta');
+    const status = $('#edit-status');
 
-    const etaNew = etaInput.val()?.trim() || '';
-    const statusNew = statusInput.val()?.trim() || '';
-
-    const etaOld = etaInput.data('original')?.trim() || '';
-    const statusOld = statusInput.data('original')?.trim() || '';
-
-    return etaNew !== etaOld || statusNew !== statusOld;
+    return eta.val()?.trim() !== eta.data('original')?.trim() ||
+           status.val()?.trim() !== status.data('original')?.trim();
   }, 'Please modify ETA or status');
-  
-$.validator.addMethod('isToday', function (value, element) {
-  if (!value) return false;
 
-  const inputDate = new Date(value);
-  const today = new Date();
+  $.validator.addMethod('englishOnly', function (value, element) {
+    return this.optional(element) || /^[A-Za-z0-9 ,.'\-]*$/.test(value);
+  }, 'Please use English letters, numbers and common punctuation only.');
 
-  // Strip time parts
-  inputDate.setHours(0, 0, 0, 0);
-  today.setHours(0, 0, 0, 0);
+  $.validator.addMethod('isToday', function (value) {
+    const inputDate = new Date(value);
+    const today = new Date();
+    inputDate.setHours(0, 0, 0, 0);
+    today.setHours(0, 0, 0, 0);
+    return inputDate.getTime() === today.getTime();
+  }, 'Start date must be today');
 
-  return inputDate.getTime() === today.getTime();
-}, 'Start date must be today');
+  // Form validation setups
   $('#package-form').validate({
     rules: {
       prod_id: { required: true, minlength: 3 },
@@ -48,33 +38,16 @@ $.validator.addMethod('isToday', function (value, element) {
       street: { required: true, minlength: 2 },
       number: { required: true, digits: true, min: 1 },
       city: { required: true, minlength: 2 },
-start_date: {
-  required: true,
-  date: true,
-  isToday: true
-},      
-eta: {
-        required: true,
-        date: true,
-        etaAfterStart: 'input[name="start_date"]'
-      },
+      start_date: { required: true, date: true, isToday: true },
+      eta: { required: true, date: true, etaAfterStart: 'input[name="start_date"]' },
       status: { required: true }
     },
     messages: {
-      prod_id: {
-        required: 'SKU is required',
-        minlength: 'SKU must be at least 3 characters'
-      },
-      name: {
-        required: 'Name is required',
-        minlength: 'Name must be at least 2 characters'
-      },
+      prod_id: { required: 'SKU is required', minlength: 'SKU must be at least 3 characters' },
+      name: { required: 'Name is required', minlength: 'Name must be at least 2 characters' },
       customerName: 'Customer name is required',
       customerId: 'Customer ID is required',
-      email: {
-        required: 'Email is required',
-        email: 'Please enter a valid email address'
-      },
+      email: { required: 'Email is required', email: 'Please enter a valid email address' },
       street: 'Street is required',
       number: {
         required: 'Street number is required',
@@ -82,10 +55,7 @@ eta: {
         min: 'Street number must be at least 1'
       },
       city: 'City is required',
-      start_date: {
-        required: 'Start date is required',
-        date: 'Enter a valid start date'
-      },
+      start_date: { required: 'Start date is required', date: 'Enter a valid start date' },
       eta: {
         required: 'ETA is required',
         date: 'Enter a valid ETA date',
@@ -96,21 +66,21 @@ eta: {
     submitHandler: window.handleAddSubmit
   });
 
-$('#edit-form').validate({
-  ignore: [], 
-  rules: {
-    eta: { required: true, date: true },
-    status: { required: false },
-    dummy: { atLeastOneChange: true }
-  },
-  messages: {
-    eta: {
-      required: 'ETA is required',
-      date: 'Enter a valid ETA date'
-    }
-  },
-  submitHandler: window.handleEditSubmit
-});
+  $('#edit-form').validate({
+    ignore: [],
+    rules: {
+      eta: { required: true, date: true },
+      status: { required: false },
+      dummy: { atLeastOneChange: true }
+    },
+    messages: {
+      eta: {
+        required: 'ETA is required',
+        date: 'Enter a valid ETA date'
+      }
+    },
+    submitHandler: window.handleEditSubmit
+  });
 
   $('#location-form').validate({
     rules: {
@@ -123,5 +93,8 @@ $('#edit-form').validate({
       }
     },
     submitHandler: window.handleLocationSearch
+  });
+  $("input[type='text'], textarea").each(function () {
+    $(this).rules("add", { englishOnly: true });
   });
 }

@@ -6,15 +6,15 @@ const {
   updateSchema,
   addLocationSchema,
   paramCompanySchema,
-  paramCompanyPackageSchema
+  paramCompanyPackageSchema,
+  searchLocationSchema
 } = require('../../utils/validator');
-
 
 const router = express.Router();
 
-
-router.post('/buisness/:companyid/packages',
-validate(packageSchema, paramCompanySchema),
+router.post(
+  '/buisness/:companyid/packages',
+  validate(packageSchema, paramCompanySchema),
   company.create_package
 );
 
@@ -23,8 +23,10 @@ router.put(
   validate(updateSchema, paramCompanyPackageSchema),
   company.update_package
 );
+
 router.post(
   '/buisness/:companyid/packages/:packageid/path/search',
+  validate(searchLocationSchema, null),
   company.SearchLocationForPackage
 );
 
@@ -51,6 +53,5 @@ router.get(
   validate(null, paramCompanyPackageSchema),
   company.getStaticMap
 );
-
 
 module.exports = router;
