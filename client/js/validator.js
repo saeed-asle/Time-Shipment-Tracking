@@ -1,4 +1,7 @@
+// dds custom validation methods and sets up rules for all forms
+
 export function setupFormValidation() {
+    //  ETA must be after or on the same day as start date
   $.validator.addMethod('etaAfterStart', function (value, element, paramSelector) {
     const startValue = $(paramSelector).val();
     const startDate = new Date(startValue);
@@ -6,7 +9,7 @@ export function setupFormValidation() {
 
     return !isNaN(startDate) && !isNaN(etaDate) && etaDate >= startDate;
   }, 'ETA must be the same day or after the start date');
-
+//at least ETA or status must be changed
   $.validator.addMethod('atLeastOneChange', function () {
     const eta = $('#edit-eta');
     const status = $('#edit-status');
@@ -14,11 +17,11 @@ export function setupFormValidation() {
     return eta.val()?.trim() !== eta.data('original')?.trim() ||
            status.val()?.trim() !== status.data('original')?.trim();
   }, 'Please modify ETA or status');
-
+// allow only English letters, numbers, and basic punctuation
   $.validator.addMethod('englishOnly', function (value, element) {
     return this.optional(element) || /^[A-Za-z0-9 ,.'\-]*$/.test(value);
   }, 'Please use English letters, numbers and common punctuation only.');
-
+  //  start date must be today
   $.validator.addMethod('isToday', function (value) {
     const inputDate = new Date(value);
     const today = new Date();
@@ -27,7 +30,7 @@ export function setupFormValidation() {
     return inputDate.getTime() === today.getTime();
   }, 'Start date must be today');
 
-  // Form validation setups
+  // Add form validation for the add package form
   $('#package-form').validate({
     rules: {
       prod_id: { required: true, minlength: 3 },
@@ -65,7 +68,7 @@ export function setupFormValidation() {
     },
     submitHandler: window.handleAddSubmit
   });
-
+  // Add form validation for the edit form
   $('#edit-form').validate({
     ignore: [],
     rules: {
@@ -82,6 +85,7 @@ export function setupFormValidation() {
     submitHandler: window.handleEditSubmit
   });
 
+  // Add form validation for the location search form
   $('#location-form').validate({
     rules: {
       location: { required: true, minlength: 3 }
@@ -94,6 +98,7 @@ export function setupFormValidation() {
     },
     submitHandler: window.handleLocationSearch
   });
+// Apply englishOnly rule to all text inputs and textareas
   $("input[type='text'], textarea").each(function () {
     $(this).rules("add", { englishOnly: true });
   });

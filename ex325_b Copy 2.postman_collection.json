@@ -1,0 +1,400 @@
+{
+	"info": {
+		"_postman_id": "34dbd3b6-fd19-4a49-8598-629c8e39686a",
+		"name": "ex325_b Copy 2",
+		"description": "# 🚀 Get started here\n\nThis template guides you through CRUD operations (GET, POST, PUT, DELETE), variables, and tests.\n\n## 🔖 **How to use this template**\n\n#### **Step 1: Send requests**\n\nRESTful APIs allow you to perform CRUD operations using the POST, GET, PUT, and DELETE HTTP methods.\n\nThis collection contains each of these [request](https://learning.postman.com/docs/sending-requests/requests/) types. Open each request and click \"Send\" to see what happens.\n\n#### **Step 2: View responses**\n\nObserve the response tab for status code (200 OK), response time, and size.\n\n#### **Step 3: Send new Body data**\n\nUpdate or add new data in \"Body\" in the POST request. Typically, Body data is also used in PUT request.\n\n```\n{\n    \"name\": \"Add your name in the body\"\n}\n\n ```\n\n#### **Step 4: Update the variable**\n\nVariables enable you to store and reuse values in Postman. We have created a [variable](https://learning.postman.com/docs/sending-requests/variables/) called `base_url` with the sample request [https://postman-api-learner.glitch.me](https://postman-api-learner.glitch.me). Replace it with your API endpoint to customize this collection.\n\n#### **Step 5: Add tests in the \"Tests\" tab**\n\nTests help you confirm that your API is working as expected. You can write test scripts in JavaScript and view the output in the \"Test Results\" tab.\n\n<img src=\"https://content.pstmn.io/b5f280a7-4b09-48ec-857f-0a7ed99d7ef8/U2NyZWVuc2hvdCAyMDIzLTAzLTI3IGF0IDkuNDcuMjggUE0ucG5n\">\n\n## 💪 Pro tips\n\n- Use folders to group related requests and organize the collection.\n- Add more [scripts](https://learning.postman.com/docs/writing-scripts/intro-to-scripts/) in \"Tests\" to verify if the API works as expected and execute workflows.\n    \n\n## 💡Related templates\n\n[API testing basics](https://go.postman.co/redirect/workspace?type=personal&collectionTemplateId=e9a37a28-055b-49cd-8c7e-97494a21eb54&sourceTemplateId=ddb19591-3097-41cf-82af-c84273e56719)  \n[API documentation](https://go.postman.co/redirect/workspace?type=personal&collectionTemplateId=e9c28f47-1253-44af-a2f3-20dce4da1f18&sourceTemplateId=ddb19591-3097-41cf-82af-c84273e56719)  \n[Authorization methods](https://go.postman.co/redirect/workspace?type=personal&collectionTemplateId=31a9a6ed-4cdf-4ced-984c-d12c9aec1c27&sourceTemplateId=ddb19591-3097-41cf-82af-c84273e56719)",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "45704592",
+		"_collection_link": "https://saeed-1078570.postman.co/workspace/saeed's-Workspace~4fe0a477-8285-4bcf-8914-034ae7b9dd39/collection/45704592-34dbd3b6-fd19-4a49-8598-629c8e39686a?action=share&source=collection_link&creator=45704592"
+	},
+	"item": [
+		{
+			"name": "Post data",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Successful POST request\", function () {",
+							"    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+							"});",
+							"pm.test(\"Extract ID from response\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.environment.set(\"resourceId\", jsonData.id);",
+							"});",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n                \"id\": \"PACK_ID1\",\n                \"prod_id\": \"PROD_ID1\",\n                \"name\": \"microwave\",\n                \"customer\": {\n                    \"id\": \"1111111\",\n                    \"name\": \"Alon Lev\",\n                    \"email\": \"alon111@gmail.com\",\n                    \"address\": {\n                        \"street\": \"Hertzel\",\n                        \"number\": 10,\n                        \"city\": \"Tel Aviv\",\n                        \"lon\": 32.0625439,\n                        \"lat\": 34.7699465\n                    }\n                },\n                \"start_date\": 1746907533,\n                \"eta\": 1747771531,\n                \"status\": \"packed\"\n            }",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/{{resources}}/1/{{packages}}",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"{{resources}}",
+						"1",
+						"{{packages}}"
+					]
+				},
+				"description": "This is a POST request, submitting data to an API via the request body. This request submits JSON data, and the data is reflected in the response.\n\nA successful POST request typically returns a `200 OK` or `201 Created` response code."
+			},
+			"response": []
+		},
+		{
+			"name": "add location to path",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Successful POST request for path\", function () {",
+							"    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+							"});;",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n                        \"lon\": 32.0263808,\n                        \"lat\": 34.02655808\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/{{resources}}/1/{{packages}}/{{resourceId}}/{{path}}",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"{{resources}}",
+						"1",
+						"{{packages}}",
+						"{{resourceId}}",
+						"{{path}}"
+					]
+				},
+				"description": "This is a POST request, submitting data to an API via the request body. This request submits JSON data, and the data is reflected in the response.\n\nA successful POST request typically returns a `200 OK` or `201 Created` response code."
+			},
+			"response": []
+		},
+		{
+			"name": "valid CreatePackage",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Valid POST request returns 201\", function () {",
+							"    pm.expect(pm.response.code).to.equal(201);",
+							"});",
+							"",
+							"pm.test(\"Extract ID and location from response\", function () {",
+							"    const jsonData = pm.response.json();",
+							"",
+							"    pm.test(\"Response body contains an 'id'\", function () {",
+							"        pm.expect(jsonData).to.have.property(\"id\");",
+							"    });",
+							"",
+							"    // save ID",
+							"    if (jsonData.id) {",
+							"        pm.environment.set(\"resourceId\", jsonData.id);",
+							"    } else {",
+							"        console.warn(\"ID not found in response; follow-up tests may fail.\");",
+							"    }",
+							"",
+							"});",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "        {\n        \"id\": \"PACK_TEST_OK\",\n        \"name\": \"saeed\",\n        \"prod_id\": \"PROD_TEST1\",\n        \"customer\": {\n            \"id\": \"cust_12345\",\n            \"name\": \"saeed\",\n            \"email\": \"saeed@example.com\",\n            \"address\": { \n            \"street\": \"Dizengoff\",\n            \"number\": 88,\n            \"city\": \"Tel Aviv\",\n            \"lon\": 32.0852999,\n            \"lat\": 34.7817676\n            }\n        },\n        \"start_date\": 1746907533,\n        \"eta\": 1747771531,\n        \"status\": \"packed\"\n        }\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/{{resources}}/2/{{packages}}",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"{{resources}}",
+						"2",
+						"{{packages}}"
+					]
+				},
+				"description": "This is a POST request, submitting data to an API via the request body. This request submits JSON data, and the data is reflected in the response.\n\nA successful POST request typically returns a `200 OK` or `201 Created` response code."
+			},
+			"response": []
+		},
+		{
+			"name": "add location to path Copy",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const response = pm.response.json();",
+							"const expectedId = pm.environment.get(\"resourceId\");",
+							"",
+							"// debug logs",
+							"console.log(\"Expected ID:\", expectedId);",
+							"console.log(\"Full response:\", response);",
+							"",
+							"// 1. ensure no 'error' field in response",
+							"pm.test(\"No 'Package not found' error\", function () {",
+							"    pm.expect(response.error).to.be.undefined;",
+							"});",
+							"",
+							"// 2. find the matching package",
+							"let matchedPackage = null;",
+							"",
+							"// try different response formats:",
+							"if (Array.isArray(response)) {",
+							"    // if response is an array",
+							"    response.forEach(wrapper => {",
+							"        const pkg = wrapper[Object.keys(wrapper)[0]];",
+							"        if (pkg.id === expectedId) {",
+							"            matchedPackage = pkg;",
+							"        }",
+							"    });",
+							"} else if (typeof response === \"object\") {",
+							"    // if response is a flat object of packages",
+							"    Object.values(response).forEach(pkg => {",
+							"        if (pkg.id === expectedId) {",
+							"            matchedPackage = pkg;",
+							"        }",
+							"    });",
+							"}",
+							"",
+							"// 3. test package was found",
+							"pm.test(\"Response contains package with ID from POST\", function () {",
+							"    pm.expect(matchedPackage).to.not.be.undefined;",
+							"});",
+							"",
+							"// 4. comparison helper",
+							"function isClose(a, b, tolerance = 0.001) {",
+							"    return Math.abs(a - b) < tolerance;",
+							"}",
+							"",
+							"// 5.  expected object",
+							"const expected = {",
+							"    id: expectedId,",
+							"    name: \"saeed\",",
+							"        prod_id: \"PROD_TEST1\",",
+							"        customer: {",
+							"          id: \"cust_12345\",",
+							"          name: \"saeed\",",
+							"          email: \"saeed@example.com\",",
+							"          address: {",
+							"            street: \"Dizengoff\",",
+							"            number: 88,",
+							"            city: \"Tel Aviv\",",
+							"            lon: 34.7812833,",
+							"            lat: 32.0835736",
+							"          }",
+							"        },",
+							"        start_date: 1746907533,",
+							"        eta: 1747771531,",
+							"        status: \"packed\",",
+							"    ",
+							"};",
+							"",
+							"// 6. assert all values match",
+							"pm.test(\"Response contains correct package details for POSTed ID\", function () {",
+							"    console.log(\"Expected:\", expected);",
+							"    console.log(\"Actual:\", matchedPackage);",
+							"",
+							"    pm.expect(matchedPackage.name).to.equal(expected.name);",
+							"    pm.expect(matchedPackage.prod_id).to.equal(expected.prod_id);",
+							"",
+							"    const cust = matchedPackage.customer;",
+							"    const expCust = expected.customer;",
+							"",
+							"    pm.expect(cust.id).to.equal(expCust.id);",
+							"    pm.expect(cust.name).to.equal(expCust.name);",
+							"    pm.expect(cust.email).to.equal(expCust.email);",
+							"",
+							"    const addr = cust.address;",
+							"    const expAddr = expCust.address;",
+							"",
+							"    pm.expect(addr.street).to.equal(expAddr.street);",
+							"    pm.expect(addr.number).to.equal(expAddr.number);",
+							"    pm.expect(addr.city).to.equal(expAddr.city);",
+							"    pm.expect(isClose(parseFloat(addr.lon), expAddr.lon)).to.be.true;",
+							"    pm.expect(isClose(parseFloat(addr.lat), expAddr.lat)).to.be.true;",
+							"",
+							"    pm.expect(matchedPackage.start_date).to.equal(expected.start_date);",
+							"    pm.expect(matchedPackage.eta).to.equal(expected.eta);",
+							"    pm.expect(matchedPackage.status).to.equal(expected.status);",
+							"});",
+							"",
+							"",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/{{resources}}/2/{{packages}}/{{resourceId}}",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"{{resources}}",
+						"2",
+						"{{packages}}",
+						"{{resourceId}}"
+					]
+				},
+				"description": "This is a POST request, submitting data to an API via the request body. This request submits JSON data, and the data is reflected in the response.\n\nA successful POST request typically returns a `200 OK` or `201 Created` response code."
+			},
+			"response": []
+		},
+		{
+			"name": "Invalid CreatePackage",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Invalid POST request returns 400\", function () {",
+							"    pm.expect(pm.response.code).to.equal(400);",
+							"});",
+							"pm.test(\"Response contains error message\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.have.property(\"error\");",
+							"    pm.expect(jsonData.error).to.include(\"customer.address.lat must be less than or equal to 90\");",
+							"    pm.expect(jsonData.error).to.include(\"customer.address.lon must be less than or equal to 180\");",
+							"});",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "        {\n        \"id\": \"PACK_TEST_fail\",\n        \"name\": \"saeed\",\n        \"prod_id\": \"PROD_TEST2\",\n        \"customer\": {\n            \"id\": \"315957399\",\n            \"name\": \"saeed\",\n            \"email\": \"saeed@example.com\",\n            \"address\": { \n            \"street\": \"Dizengoff\",\n            \"number\": 88,\n            \"city\": \"Tel Aviv\",\n            \"lon\": 190.0852999,\n            \"lat\": 90.7817676\n            }\n        },\n        \"start_date\": 1746907533,\n        \"eta\": 1747771531,\n        \"status\": \"packed\"\n        }",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/{{resources}}/1/{{packages}}",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"{{resources}}",
+						"1",
+						"{{packages}}"
+					]
+				},
+				"description": "This is a POST request, submitting data to an API via the request body. This request submits JSON data, and the data is reflected in the response.\n\nA successful POST request typically returns a `200 OK` or `201 Created` response code."
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "id",
+			"value": "1"
+		},
+		{
+			"key": "base_url",
+			"value": "http://localhost:3001"
+		},
+		{
+			"key": "resources",
+			"value": "buisness",
+			"type": "default"
+		},
+		{
+			"key": "packages",
+			"value": "packages",
+			"type": "default"
+		},
+		{
+			"key": "path",
+			"value": "path",
+			"type": "default"
+		}
+	]
+}

@@ -3,32 +3,32 @@
 <head>
   <meta charset="UTF-8" />
   <title>Package List</title>
-  <link rel="stylesheet" href="/styles.css" />
+  <link rel="stylesheet" href="../css/styles.css" />
   <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.5/dist/jquery.validate.min.js"></script>
-    <script src="/main.js" type="module"></script>
-
+  <script src="../js/main.js" type="module"></script>
 </head>
 <body>
   <div class="container">
+    <!-- Toast Notification -->
     <div id="toast" class="toast hidden"></div>
 
     <h1>Package List</h1>
-
     <button id="add-package-top" class="btn primary">Add Package</button>
 
+    <!-- Main Package Table -->
     <div id="package-list" class="table-container">
       <table id="package-table">
         <thead>
           <tr>
-            <th>Package ID</th>        <!-- was "Package" -->
-            <th>Product SKU</th>       <!-- was "SKU" -->
-            <th>Product Name</th>      <!-- was "Name" -->
-            <th>Customer ID</th>          <!-- was "Customer ID" -->
-            <th>Opend</th>       <!-- was "Opened" -->
-            <th>ETA</th> <!-- was "ETA" -->
-            <th>Status</th>   <!-- was "Status" -->
-            <th>Actions</th>           <!-- same -->
+            <th>Package ID</th>
+            <th>Product SKU</th>
+            <th>Product Name</th>
+            <th>Customer ID</th>
+            <th>Opend</th>
+            <th>ETA</th>
+            <th>Status</th>
+            <th>Actions</th>
           </tr>
         </thead>
         <tbody></tbody>
@@ -36,15 +36,15 @@
       <button id="add-package-bottom" class="btn primary">Add Package</button>
     </div>
 
-    <!-- Customer Modal -->
+    <!-- Customer Info Modal -->
     <div id="customer-modal" class="modal hidden">
       <div class="modal-content">
         <span class="close-btn">&times;</span>
         <h2>Customer Details</h2>
         <p><strong>Name:</strong> <span id="cust-name"></span></p>
         <p><strong>Email:</strong> <span id="cust-email"></span></p>
-<p><strong>Address:</strong></p>
-<ul id="cust-address"></ul>
+        <p><strong>Address:</strong></p>
+        <ul id="cust-address"></ul>
       </div>
     </div>
 
@@ -69,13 +69,12 @@
             </select>
           </div>
           <input type="hidden" name="dummy" value="1" />
-
           <button type="submit" class="btn primary">Update</button>
         </form>
       </div>
     </div>
 
-    <!-- Location Modal -->
+    <!-- Location Add Modal -->
     <div id="location-modal" class="modal hidden">
       <div class="modal-content">
         <span class="close-btn" id="close-location-modal">&times;</span>
@@ -91,7 +90,7 @@
       </div>
     </div>
 
-    <!-- Path Modal -->
+    <!-- Path View Modal -->
     <div id="path-modal" class="modal hidden">
       <div class="modal-content">
         <span class="close-btn">&times;</span>
@@ -100,7 +99,7 @@
       </div>
     </div>
 
-    <!-- Add Package Modal -->
+    <!-- Add New Package Modal -->
     <div id="add-package-modal" class="modal hidden">
       <div class="modal-content">
         <span class="close-btn" id="close-add-modal">&times;</span>
@@ -148,6 +147,8 @@
         </form>
       </div>
     </div>
+
+    <!-- Static Map Modal -->
     <div id="map-modal" class="modal hidden">
       <div class="modal-content map-modal-content">
         <div class="modal-body">
@@ -157,6 +158,5 @@
       </div>
     </div>
   </div>
-
 </body>
 </html>

@@ -1,5 +1,6 @@
 const yup = require('yup');
 
+// Company ID: integer between 1–10
 const companyIdSchema = yup
   .mixed()
   .required('companyid is required')
@@ -8,11 +9,13 @@ const companyIdSchema = yup
     return Number.isInteger(num) && num >= 1 && num <= 10;
   });
 
+/**
+ * Full package schema for creation
+ */
 const packageSchema = yup.object({
   id: yup.string().optional(),
 
-  prod_id: yup.string()
-    .required(),
+  prod_id: yup.string().required(),
 
   name: yup.string()
     .required()
@@ -76,6 +79,9 @@ const packageSchema = yup.object({
   ).optional()
 }).noUnknown();
 
+/**
+ * Partial package update: ETA or status (at least one)
+ */
 const updateSchema = yup.object({
   eta: yup.number()
     .strict(true)
@@ -88,20 +94,27 @@ const updateSchema = yup.object({
 }).noUnknown().test(
   'at-least-one',
   'At least one of ETA or status must be provided',
-  function (value) {
-    return value.eta != null || value.status != null;
-  }
+  value => value.eta != null || value.status != null
 );
 
+/**
+ * Params: only companyid
+ */
 const paramCompanySchema = yup.object({
   companyid: companyIdSchema
 }).noUnknown();
 
+/**
+ * Params: companyid + packageid
+ */
 const paramCompanyPackageSchema = yup.object({
   companyid: companyIdSchema,
   packageid: yup.string().required()
 }).noUnknown();
 
+/**
+ * Add a location (lat/lon)
+ */
 const addLocationSchema = yup.object({
   lat: yup.number()
     .required()
@@ -113,6 +126,9 @@ const addLocationSchema = yup.object({
     .max(180)
 }).noUnknown();
 
+/**
+ * Search location by name string
+ */
 const searchLocationSchema = yup.object({
   location: yup.string()
     .required('Location string is required')
