@@ -26,7 +26,7 @@ const writeFile = (fileData, callback, filePath = FILE, encoding = 'utf8') => {
 };
 
 module.exports = {
-create_package: async (req, res) => {
+create_package: async (req, res) => { 
   const companyId = parseInt(req.params.companyid);
   const packageData = {
     ...req.body,
@@ -58,21 +58,43 @@ create_package: async (req, res) => {
 
   // Generate unique ID and construct final package object
   const newId = nanoid(10);
-  const finalPackageData = {
-    ...packageData,
-    id: newId,
-    path: packageData.path || []
-  };
+const finalPackageData = {
+  id: newId,
+  name: packageData.name,
+  prod_id: packageData.prod_id,
+  customer: {
+    id: packageData.customer.id,
+    name: packageData.customer.name,
+    email: packageData.customer.email,
+    address: {
+      street: packageData.customer.address.street,
+      number: packageData.customer.address.number,
+      city: packageData.customer.address.city,
+      lat: packageData.customer.address.lat,
+      lon: packageData.customer.address.lon
+    }
+  },
+  start_date: Math.floor(new Date(packageData.start_date).getTime() / 1000),
+  eta: Math.floor(new Date(packageData.eta).getTime() / 1000),
+  status: packageData.status.trim(),
+  path: packageData.path || []
+};
+
 
   readFile((data) => {
     if (!data[companyId]) data[companyId] = [];
 
     data[companyId].push({ [newId]: finalPackageData });
 
-    // Optional: sort after insertion
     data[companyId].sort((a, b) => {
       const pkgA = Object.values(a)[0];
       const pkgB = Object.values(b)[0];
+
+      if (pkgB.start_date === pkgA.start_date) {
+        // Maintain newer package first (push was last, so it's later in array => move up)
+        return -1;
+      }
+
       return pkgB.start_date - pkgA.start_date;
     });
 

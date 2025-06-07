@@ -4,10 +4,24 @@ let currentLocationPkgId = null;
 
 export function openEditModal(pkgId, eta, status) {
   currentEditPkgId = pkgId;
-  $('#edit-eta').val(new Date(eta).toISOString().split('T')[0]);
-  $('#edit-status').val(status);
+
+  const etaDateStr = new Date(eta * 1000).toISOString().split('T')[0];
+  $('#edit-eta')
+    .val(etaDateStr)
+    .data('original', etaDateStr);
+
+  $('#edit-status')
+    .val(status)
+    .data('original', status); 
+
+  $('#edit-modal')
+    .data('id', pkgId)
+    .data('eta', eta)
+    .data('status', status);
+
   $('#edit-modal').removeClass('hidden');
 }
+
 
 export function closeEditModal() {
   $('#edit-modal').addClass('hidden');

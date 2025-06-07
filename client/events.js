@@ -3,7 +3,6 @@ import {
   updatePackage, 
   addPackage, 
   loadPackages, 
-  fetchStaticMap, 
   searchLocation, 
   confirmLocation ,
   getPackage
@@ -18,8 +17,6 @@ import {
 } from './modal.js';
 
 export function bindGlobalEvents() {
-  $('#edit-form').on('submit', handleEditSubmit);
-  $('#package-form').on('submit', handleAddSubmit);
   $(document).on('click', '.edit-btn', handleEditClick);
   $(document).on('submit', '#location-form', handleLocationSearch);
   $(document).on('click', '#confirm-location', handleLocationConfirm);
@@ -28,10 +25,6 @@ export function bindGlobalEvents() {
   $(document).on('click', '.view-map-btn', handleMapView);
   $(document).on('click', '.add-loc-btn', handleAddLocationClick);
   $(document).on('click', '.add-loc-btn', handleAddLocationClick);
-
-  
-
-
   $('#add-package-top, #add-package-bottom').on('click', () =>
     $('#add-package-modal').removeClass('hidden')
   );
@@ -49,20 +42,32 @@ function handleAddLocationClick(e) {
 }
 function handleEditClick() {
   const id = $(this).data('id');
-  $('#edit-eta').val(new Date($(this).data('eta')).toISOString().split('T')[0]);
-  $('#edit-status').val($(this).data('status'));
-  $('#edit-modal').data('id', id).removeClass('hidden');
+  const eta = $(this).data('eta'); // Don't convert to Date yet
+  const status = $(this).data('status');
+
+  openEditModal(id, eta, status);
 }
 
-function handleEditSubmit(e) {
-  e.preventDefault();
+function handleEditSubmit(form) {
   const id = $('#edit-modal').data('id');
-  const eta = $('#edit-eta').val();
-  const status = $('#edit-status').val();
+  const currentEta = $('#edit-modal').data('eta');
+  const currentStatus = $('#edit-modal').data('status');
+
+  const etaInput = form.elements.eta.value.trim();
+  const statusInput = form.elements.status.value.trim();
+
   const update = {};
 
-  if (eta) update.eta = eta;
-  if (status) update.status = status;
+  if (etaInput) {
+    const newEta = Math.floor(new Date(etaInput).getTime() / 1000);
+    if (newEta !== currentEta) {
+      update.eta = newEta;
+    }
+  }
+
+  if (statusInput && statusInput !== currentStatus) {
+    update.status = statusInput;
+  }
 
   if (!Object.keys(update).length) {
     showToast('No changes detected', 'error');
@@ -72,36 +77,40 @@ function handleEditSubmit(e) {
   updatePackage(id, update, () => $('#edit-modal').addClass('hidden'));
 }
 
-function handleAddSubmit(e) {
-  e.preventDefault();
-  const form = e.target;
-  const startDateStr = form.start_date.value.trim();
-  const etaStr = form.eta.value.trim();
+function handleAddSubmit(form) {
+  const startDateStr = form.elements.start_date.value.trim();
+  const etaStr = form.elements.eta.value.trim();
+
+  const startTimestamp = startDateStr 
+    ? new Date(startDateStr).getTime() 
+    : Date.now();
+
+  const etaTimestamp = new Date(etaStr).getTime();
 
   const formData = {
-    prod_id: form.prod_id.value,
-    name: form.name.value,
+    prod_id: form.elements.prod_id.value,
+    name: form.elements.name.value,
     customer: {
-      id: form.customerId.value,
-      name: form.customerName.value,
-      email: form.email.value,
+      id: form.elements.customerId.value,
+      name: form.elements.customerName.value,
+      email: form.elements.email.value,
       address: {
-        street: form.street.value,
-        number: parseInt(form.number.value),
-        city: form.city.value
+        street: form.elements.street.value,
+        number: parseInt(form.elements.number.value, 10),
+        city: form.elements.city.value
       }
     },
-    start_date: startDateStr || new Date().toISOString().split('T')[0],
-    eta: etaStr,
-    status: form.status.value
+    start_date: startTimestamp,
+    eta: etaTimestamp,
+    status: form.elements.status.value
   };
 
-addPackage(formData, (response) => {
-  showToast(`Package added! ID: ${response.id}`, 'success');
-  $('#add-package-modal').addClass('hidden');
-  $('#package-form')[0].reset();
-  getPackage(response.id); // 🔄 Just call, no .then needed
-})
+  addPackage(formData, (response) => {
+    showToast(`Package added! ID: ${response.id}`, 'success');
+    $('#add-package-modal').addClass('hidden');
+    $('#package-form')[0].reset();
+    getPackage(response.id); 
+  });
 }
 
 function handleCustomerInfo(e) {
@@ -161,16 +170,13 @@ function handleMapView(e) {
       showToast('Failed to fetch map', 'error');
     });
 }
-
-function handleLocationSearch(e) {
-  e.preventDefault();
-
-  const location = $('#location-input').val().trim();
+function handleLocationSearch(form) {
+const location = form.elements.location.value.trim();
   const pkgId = getCurrentLocationPkgId();
 
   if (!location || !pkgId) return;
 
-  const $btn = $('#location-form button');
+  const $btn = $(form).find('button[type="submit"]');
   $btn.prop('disabled', true).text('Searching...');
 
   const ajax = searchLocation(pkgId, location,
@@ -192,6 +198,7 @@ function handleLocationSearch(e) {
     $btn.prop('disabled', false).text('Search');
   }
 }
+
 
 function handleLocationConfirm() {
   const $btn = $(this);
@@ -234,3 +241,6 @@ function handleLocationConfirm() {
     }
   );
 }
+window.handleAddSubmit = handleAddSubmit;
+window.handleEditSubmit = handleEditSubmit;
+window.handleLocationSearch = handleLocationSearch;

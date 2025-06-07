@@ -4,36 +4,36 @@
   <meta charset="UTF-8" />
   <title>Package List</title>
   <link rel="stylesheet" href="/styles.css" />
-
-  <!-- Correct order: jQuery first -->
   <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.5/dist/jquery.validate.min.js"></script>
+    <script src="/main.js" type="module"></script>
+
 </head>
 <body>
   <div class="container">
     <div id="toast" class="toast hidden"></div>
 
-    <h1>📦 Package List</h1>
+    <h1>Package List</h1>
 
-    <button id="add-package-top" class="btn primary">➕ Add Package</button>
+    <button id="add-package-top" class="btn primary">Add Package</button>
 
     <div id="package-list" class="table-container">
       <table id="package-table">
         <thead>
           <tr>
-            <th>Package</th>
-            <th>SKU</th>
-            <th>Name</th>
-            <th>Customer ID</th>
-            <th>Opened</th>
-            <th>ETA</th>
-            <th>Status</th>
-            <th>Actions</th>
+            <th>Package ID</th>        <!-- was "Package" -->
+            <th>Product SKU</th>       <!-- was "SKU" -->
+            <th>Product Name</th>      <!-- was "Name" -->
+            <th>Customer ID</th>          <!-- was "Customer ID" -->
+            <th>Opend</th>       <!-- was "Opened" -->
+            <th>ETA</th> <!-- was "ETA" -->
+            <th>Status</th>   <!-- was "Status" -->
+            <th>Actions</th>           <!-- same -->
           </tr>
         </thead>
         <tbody></tbody>
       </table>
-      <button id="add-package-bottom" class="btn primary">➕ Add Package</button>
+      <button id="add-package-bottom" class="btn primary">Add Package</button>
     </div>
 
     <!-- Customer Modal -->
@@ -68,6 +68,8 @@
               <option value="delivered">Delivered</option>
             </select>
           </div>
+          <input type="hidden" name="dummy" value="1" />
+
           <button type="submit" class="btn primary">Update</button>
         </form>
       </div>
@@ -156,6 +158,5 @@
     </div>
   </div>
 
-  <script src="/main.js" type="module"></script>
 </body>
 </html>

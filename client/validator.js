@@ -1,59 +1,126 @@
+
+
 export function setupFormValidation() {
-  // Add Package Form
+  $.validator.addMethod('etaAfterStart', function (value, element, paramSelector) {
+    const startValue = $(paramSelector).val();
+    const startDate = new Date(startValue);
+    const etaDate = new Date(value);
+
+    if (isNaN(startDate.getTime()) || isNaN(etaDate.getTime())) {
+      return false;
+    }
+
+    return etaDate >= startDate;
+  }, 'ETA must be the same day or after the start date');
+
+  $.validator.addMethod('atLeastOneChange', function () {
+    const etaInput = $('#edit-eta');
+    const statusInput = $('#edit-status');
+
+    const etaNew = etaInput.val()?.trim() || '';
+    const statusNew = statusInput.val()?.trim() || '';
+
+    const etaOld = etaInput.data('original')?.trim() || '';
+    const statusOld = statusInput.data('original')?.trim() || '';
+
+    return etaNew !== etaOld || statusNew !== statusOld;
+  }, 'Please modify ETA or status');
+  
+$.validator.addMethod('isToday', function (value, element) {
+  if (!value) return false;
+
+  const inputDate = new Date(value);
+  const today = new Date();
+
+  // Strip time parts
+  inputDate.setHours(0, 0, 0, 0);
+  today.setHours(0, 0, 0, 0);
+
+  return inputDate.getTime() === today.getTime();
+}, 'Start date must be today');
   $('#package-form').validate({
     rules: {
-      prod_id: 'required',
-      name: 'required',
-      customerName: 'required',
-      customerId: 'required',
-      email: {
+      prod_id: { required: true, minlength: 3 },
+      name: { required: true, minlength: 2 },
+      customerName: { required: true, minlength: 2 },
+      customerId: { required: true, minlength: 2 },
+      email: { required: true, email: true },
+      street: { required: true, minlength: 2 },
+      number: { required: true, digits: true, min: 1 },
+      city: { required: true, minlength: 2 },
+start_date: {
+  required: true,
+  date: true,
+  isToday: true
+},      
+eta: {
         required: true,
-        email: true
+        date: true,
+        etaAfterStart: 'input[name="start_date"]'
       },
-      street: 'required',
-      number: {
-        required: true,
-        digits: true
-      },
-      city: 'required',
-      start_date: 'required',
-      eta: {
-        required: true,
-        date: true
-      },
-      status: 'required'
+      status: { required: true }
     },
     messages: {
+      prod_id: {
+        required: 'SKU is required',
+        minlength: 'SKU must be at least 3 characters'
+      },
+      name: {
+        required: 'Name is required',
+        minlength: 'Name must be at least 2 characters'
+      },
+      customerName: 'Customer name is required',
+      customerId: 'Customer ID is required',
       email: {
-        email: 'Enter a valid email'
+        required: 'Email is required',
+        email: 'Please enter a valid email address'
       },
+      street: 'Street is required',
       number: {
-        digits: 'Enter only digits for street number'
-      }
-    },
-    submitHandler: window.handleAddSubmit // Use global or import in setup
-  });
-
-  // Edit Form
-  $('#edit-form').validate({
-    rules: {
-      eta: {
-        date: true
+        required: 'Street number is required',
+        digits: 'Street number must be numeric',
+        min: 'Street number must be at least 1'
       },
-      status: {
-        required: false
-      }
+      city: 'City is required',
+      start_date: {
+        required: 'Start date is required',
+        date: 'Enter a valid start date'
+      },
+      eta: {
+        required: 'ETA is required',
+        date: 'Enter a valid ETA date',
+        etaAfterStart: 'ETA must be the same day or after the start date'
+      },
+      status: 'Status is required'
     },
-    submitHandler: window.handleEditSubmit
+    submitHandler: window.handleAddSubmit
   });
 
-  // Location Form
+$('#edit-form').validate({
+  ignore: [], 
+  rules: {
+    eta: { required: true, date: true },
+    status: { required: false },
+    dummy: { atLeastOneChange: true }
+  },
+  messages: {
+    eta: {
+      required: 'ETA is required',
+      date: 'Enter a valid ETA date'
+    }
+  },
+  submitHandler: window.handleEditSubmit
+});
+
   $('#location-form').validate({
     rules: {
-      location: 'required'
+      location: { required: true, minlength: 3 }
     },
     messages: {
-      location: 'Please enter a location'
+      location: {
+        required: 'Please enter a location',
+        minlength: 'Location must be at least 3 characters long'
+      }
     },
     submitHandler: window.handleLocationSearch
   });

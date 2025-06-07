@@ -1,15 +1,13 @@
 //api.js
-import { showToast, updatePackageRow, appendPackageRow } from './ui.js';
+import { showToast, updatePackageRow, appendPackageRow,renderPackageRow } from './ui.js';
 
 export function loadPackages() { 
   $.ajax({
     url: apiBase,
     method: 'GET',
     success: (data) => {
-      // Updated to reflect new format
       const packages = data.map(p => Object.values(p)[0]);
 
-      // Sort by start_date descending
       packages.sort((a, b) => b.start_date - a.start_date);
 
       const container = $('#package-list tbody').empty();
@@ -34,6 +32,8 @@ export function loadPackages() {
   });
 }
 
+
+
 export function getPackage(packageId) {
   return $.ajax({
     url: `${apiBase}/${packageId}`,
@@ -41,13 +41,35 @@ export function getPackage(packageId) {
     success: (pkgData) => {
       const pkg = Object.values(pkgData)[0];
       const container = $('#package-list tbody');
-      appendPackageRow(pkg, container); 
+      container.find('td[colspan="8"]').closest('tr').remove();
+
+      const newRow = renderPackageRow(pkg);
+      const newStart = new Date(pkg.start_date * 1000); 
+
+      let inserted = false;
+      container.find('tr').each(function () {
+        const cell = $(this).find('td').eq(4);
+        const existingStartRaw = parseInt(cell.data('start'));
+        const existingStart = new Date(existingStartRaw * 1000);
+
+        if (newStart >= existingStart) {
+          $(this).before(newRow);
+          inserted = true;
+          return false;
+        }
+      });
+
+      if (!inserted) {
+        container.append(newRow);
+      }
     },
     error: (xhr) => {
       showToast(xhr.responseJSON?.error || 'Failed to load package', 'error');
     }
   });
 }
+
+
 export function addPackage(data, successCb) {
     $.ajax({
         url: apiBase,
@@ -75,19 +97,6 @@ export function updatePackage(id, update, successCb) {
             showToast(xhr.responseJSON?.error || 'Update failed', 'error');
         }
     });
-}
-
-
-
-
-export function fetchStaticMap(packageId) {
-  return $.ajax({
-    url: `${apiBase}/${packageId}/staticmap`,
-    method: 'GET',
-    error: (xhr) => {
-      showToast(xhr.responseJSON?.error || 'Failed to load map', 'error');
-    }
-  });
 }
 
 export function searchLocation(pkgId, location, successCb, errorCb) {
