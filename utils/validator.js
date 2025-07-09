@@ -14,48 +14,15 @@ const companyIdSchema = yup
  */
 const packageSchema = yup.object({
   id: yup.string().optional(),
-
   prod_id: yup.string().required(),
-
   name: yup.string()
     .required()
     .matches(/^[A-Za-z\s.,'-]*$/, 'Name must contain only English letters'),
 
-  customer: yup.object({
-    id: yup.string().required(),
-
-    name: yup.string()
-      .required()
-      .matches(/^[A-Za-z\s.,'-]*$/, 'Customer name must contain only English letters'),
-
-    email: yup.string().email().required(),
-
-    address: yup.object({
-      street: yup.string()
-        .required()
-        .matches(/^[A-Za-z0-9\s.,'-]*$/, 'Street must contain only English characters'),
-
-      number: yup.number()
-        .required()
-        .min(1, 'Street number must be a positive number'),
-
-      city: yup.string()
-        .required()
-        .matches(/^[A-Za-z\s.,'-]*$/, 'City must contain only English letters'),
-
-      lat: yup.number()
-        .min(-90)
-        .max(90)
-        .optional()
-        .typeError('Latitude must be a valid number'),
-
-      lon: yup.number()
-        .min(-180)
-        .max(180)
-        .optional()
-        .typeError('Longitude must be a valid number')
-    }).required().noUnknown()
-  }).required().noUnknown(),
+  customer: yup
+    .string()
+    .required('Customer is required')
+    .matches(/^[a-fA-F0-9]{24}$/, 'Customer must be a valid ObjectId'),
 
   start_date: yup.number()
     .strict(true)

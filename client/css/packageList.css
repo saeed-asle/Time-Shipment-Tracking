@@ -4,15 +4,13 @@ body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   margin: 0;
   padding: 20px;
-  
 }
 
 .container {
-  max-width: 1160px;
+  max-width: 1260px;
   margin: auto;
   padding: 20px;
-    display: none;  /* hide by default */
-
+  display: none;  /* hide by default */
 }
 
 h1 {
@@ -20,33 +18,33 @@ h1 {
   margin-bottom: 30px;
   font-size: 28px;
 }
-#add-package-top,
-#add-package-bottom{
-  background-color: #ffffff;
-  color: #1e1e1e;
-}
-.btn {
+
+/* === Buttons: All white === */
+button,
+.btn,
+input[type="button"],
+input[type="submit"] {
+  background: #fff !important;
+  color: #111 !important;
+  border: 1px solid #ccc !important;
+  box-shadow: none !important;
   padding: 10px 16px;
   margin: 5px;
-  border: none;
   border-radius: 8px;
   cursor: pointer;
   font-size: 14px;
   font-weight: 500;
-  transition: background-color 0.2s, transform 0.2s;
-
-
+  transition: background 0.2s, color 0.2s, transform 0.2s;
 }
 
-.btn:hover {
+button:hover,
+.btn:hover,
+input[type="button"]:hover,
+input[type="submit"]:hover {
+  background: #f4f4f4 !important;
+  color: #111 !important;
   transform: scale(1.03);
   opacity: 0.95;
-  
-}
-
-.primary {
-  background-color: #1e88e5;
-  color: white;
 }
 
 /* === Table Styles === */
@@ -174,25 +172,6 @@ h1 {
   box-sizing: border-box;
 }
 
-/* Submit Button */
-.modal-content button[type="submit"] {
-  margin-top: 12px;
-  background-color: #1e88e5;
-  color: white;
-  padding: 10px 16px;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: 500;
-  transition: background-color 0.2s, transform 0.2s;
-}
-
-.modal-content button[type="submit"]:hover {
-  background-color: #1565c0;
-  transform: scale(1.03);
-}
-
 /* Close Button */
 .close-btn {
   position: absolute;
@@ -216,9 +195,13 @@ h1 {
   color: #f0f0f0;
   border-radius: 10px;
   font-size: 14px;
-  display: none;
+  display: block;         /* Show by default unless hidden */
   box-shadow: 0 4px 12px rgba(0,0,0,0.3);
   transition: all 0.3s ease;
+}
+
+.suggestion.hidden {
+  display: none !important;    /* Hide if .hidden is present */
 }
 
 .suggestion.visible {
@@ -243,23 +226,6 @@ h1 {
   margin-bottom: 4px;
 }
 
-.suggestion button {
-  margin-top: 12px;
-  background-color: #1e88e5;
-  color: white;
-  padding: 8px 14px;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 13px;
-  font-weight: 500;
-  transition: background-color 0.2s, transform 0.2s;
-}
-
-.suggestion button:hover {
-  background-color: #1565c0;
-  transform: scale(1.03);
-}
 .toast {
   position: fixed;
   bottom: 20px;
@@ -296,7 +262,7 @@ h1 {
 /* === Map Modal Only === */
 .map-modal-content {
   width: 90%;
-  max-width: 960px;
+  max-width: 80vh;
   max-height: 90vh;
   padding: 0;
   overflow: hidden;
@@ -354,4 +320,3 @@ h1 {
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
-

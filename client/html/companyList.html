@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Company List</title>
+  <link rel="stylesheet" href="../css/companyList.css" />
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.5/dist/jquery.validate.min.js"></script>
+  <script src="../js/companyList.js" type="module"></script>
+</head>
+<body>
+  <div class="container">
+    <div id="toast" class="toast hidden"></div>
+
+    <h1>Company List</h1>
+    <button id="add-customer-top" class="btn primary">Add Customer</button>
+
+    <button id="add-company-top" class="btn primary">Add Company</button>
+
+    <div id="company-list" class="table-container">
+      <table id="company-table">
+        <thead>
+          <tr>
+            <th>Company ID</th>
+            <th>Name</th>
+            <th>Website</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+          <button id="add-customer-bottom" class="btn primary">Add Customer</button>
+
+      <button id="add-company-bottom" class="btn primary">Add Company</button>
+    </div>
+
+    <!-- Add Company Modal -->
+    <div id="add-company-modal" class="modal hidden">
+      <div class="modal-content">
+        <span class="close-btn" id="close-add-modal">&times;</span>
+        <h2>Add New Company</h2>
+        <form id="company-form">
+          <div class="form-group">
+            <label for="company-name">Name</label>
+            <input type="text" id="company-name" name="name" required />
+          </div>
+          <div class="form-group">
+            <label for="company-website">Website</label>
+            <input type="url" id="company-website" name="website" required />
+          </div>
+          <button type="submit" class="btn primary">Submit</button>
+        </form>
+      </div>
+    </div>
+    <div id="add-customer-modal" class="modal hidden">
+    <div class="modal-content">
+      <span class="close-btn" id="close-customer-modal">&times;</span>
+      <h2>Add New Customer</h2>
+      <form id="customer-form">
+        <div class="form-group">
+          <label for="customer-name">Name</label>
+          <input type="text" id="customer-name" name="name" required />
+        </div>
+        <div class="form-group">
+          <label for="customer-email">Email</label>
+          <input type="email" id="customer-email" name="email" required />
+        </div>
+        <div class="form-group">
+          <label for="customer-street">Street</label>
+          <input type="text" id="customer-street" name="street" required />
+        </div>
+        <div class="form-group">
+          <label for="customer-number">Street Number</label>
+          <input type="number" id="customer-number" name="number" required />
+        </div>
+        <div class="form-group">
+          <label for="customer-city">City</label>
+          <input type="text" id="customer-city" name="city" required />
+        </div>
+        <button type="submit" class="btn primary">Submit</button>
+      </form>
+    </div>
+  </div>
+  </div>
+</body>
+</html>

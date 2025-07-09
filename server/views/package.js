@@ -1,0 +1,173 @@
+// views/package.js
+const Package = require('../models/Package');
+const Company = require('../models/Company');
+const Customer = require('../models/Customer');
+const axios = require('axios');
+const LOCATIONIQ_API_KEY = process.env.LOCATIONIQ_API_KEY;
+
+const createPackage = async (req, res) => {
+  try {
+    if (!req.params.companyid || typeof req.params.companyid !== 'string' || req.params.companyid.length !== 24) {
+      return res.status(400).json({ error: 'Invalid company id' });
+    }
+    const company = await Company.findById(req.params.companyid);
+    if (!company) return res.status(404).json({ error: 'Company not found' });
+
+    const customerId = req.body.customer;
+    if (!customerId || typeof customerId !== 'string' || customerId.length !== 24) {
+      return res.status(400).json({ error: 'Invalid customer id' });
+    }
+
+    const customer = await Customer.findById(customerId);
+    if (!customer) return res.status(404).json({ error: 'Customer not found' });
+
+    if (!customer.address.lat || !customer.address.lon) {
+      const { street, number, city } = customer.address;
+      const fullAddress = `${street} ${number}, ${city}`;
+      const locRes = await axios.get('https://us1.locationiq.com/v1/search', {
+        params: {
+          key: LOCATIONIQ_API_KEY,
+          q: fullAddress,
+          format: 'json',
+          addressdetails: 1
+        }
+      });
+      const result = locRes.data[0];
+      if (!result || result.address.country_code.toLowerCase() !== 'il') {
+        return res.status(400).json({ error: 'Address must be located in Israel.' });
+      }
+      customer.address.lat = parseFloat(result.lat);
+      customer.address.lon = parseFloat(result.lon);
+      await customer.save();
+    }
+
+    if (new Date(req.body.eta) < new Date(req.body.start_date)) {
+      return res.status(400).json({ error: 'ETA must be after start date.' });
+    }
+
+    const pkg = new Package({
+      prod_id: req.body.prod_id,
+      name: req.body.name,
+      start_date: req.body.start_date,
+      eta: req.body.eta,
+      status: req.body.status,
+      company: company._id,
+      customer: customer._id,
+      path: req.body.path || []
+    });
+    await pkg.save();
+    res.status(201).json({ message: 'Package created', id: pkg._id });
+  } catch (err) {
+    res.status(400).json({ error: err.errors || err.message });
+  }
+};
+
+
+const addLocationToPackage = async (req, res) => {
+  try {
+    if (!req.params.packageid || typeof req.params.packageid !== 'string' || req.params.packageid.length !== 24) {
+      return res.status(400).json({ error: 'Invalid package id' });
+    }
+    const { lat, lon } = req.body;
+    if (typeof lat !== 'number' || typeof lon !== 'number') {
+      return res.status(400).json({ error: 'lat and lon must be numbers' });
+    }
+    const pkg = await Package.findById(req.params.packageid);
+    if (!pkg) return res.status(404).json({ error: 'Package not found' });
+
+    const exists = pkg.path.some(loc => loc.lat === lat && loc.lon === lon);
+    if (exists) return res.status(400).json({ error: 'Location already exists in path' });
+
+    pkg.path.push({ lat, lon });
+    await pkg.save();
+    res.json({ message: 'Location added successfully' });
+  } catch (err) {
+    res.status(400).json({ error: err.errors || err.message });
+  }
+};
+
+const searchLocation = async (req, res) => {
+  try {
+    const { location } = req.body;
+    if (!location || typeof location !== 'string')
+      return res.status(400).json({ error: 'location string is required' });
+
+    const locRes = await axios.get('https://us1.locationiq.com/v1/search', {
+      params: {
+        key: LOCATIONIQ_API_KEY,
+        q: location,
+        format: 'json',
+        addressdetails: 1
+      }
+    });
+    const result = locRes.data[0];
+    if (!result) return res.status(404).json({ error: 'Location not found' });
+
+    if (result.address.country_code.toLowerCase() !== 'il') {
+      return res.status(400).json({ error: 'Location must be in Israel' });
+    }
+
+    res.json({
+      lat: parseFloat(result.lat),
+      lon: parseFloat(result.lon),
+      address: result.display_name
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Geocoding failed' });
+  }
+};
+
+const getPackages = async (req, res) => {
+  try {
+    if (!req.params.companyid || typeof req.params.companyid !== 'string' || req.params.companyid.length !== 24) {
+      return res.status(400).json({ error: 'Invalid company id' });
+    }
+    const packages = await Package.find({ company: req.params.companyid })
+      .populate('customer')
+      .sort({ start_date: -1 });
+    res.json(packages);
+  } catch (err) {
+    res.status(400).json({ error: err.errors || err.message });
+  }
+};
+const getStaticMap = async (req, res) => {
+  try {
+    const { packageid } = req.params;
+    if (!packageid || packageid.length !== 24)
+      return res.status(400).json({ error: 'Invalid package id' });
+
+    const pkg = await Package.findById(packageid);
+    if (!pkg) return res.status(404).json({ error: 'Package not found' });
+
+    const path = pkg.path;
+    if (!path || path.length === 0) {
+      return res.status(200).json({ message: 'No path data available' });
+    }
+
+    // Geoapify example
+    const lats = path.map(loc => parseFloat(loc.lat));
+    const lons = path.map(loc => parseFloat(loc.lon));
+    const bounds = `lonlat:${Math.min(...lons)},${Math.min(...lats)},${Math.max(...lons)},${Math.max(...lats)}`;
+    const markers = path.map((loc, i) =>
+      `lonlat:${loc.lon},${loc.lat};type:material;color:%231f63e6;size:x-large;text:${i + 1};icon:cloud;icontype:awesome;whitecircle:no`
+    ).join('|');
+
+    const geoapifyUrl = `https://maps.geoapify.com/v1/staticmap?style=osm-bright&width=600&height=400&bounds=${bounds}&marker=${markers}&apiKey=${process.env.GEOAPIFY_API_KEY}`;
+
+    // Stream map image to client
+    const response = await axios.get(geoapifyUrl, { responseType: 'stream' });
+    res.setHeader('Content-Type', response.headers['content-type']);
+    response.data.pipe(res);
+  } catch (error) {
+    console.error('Error fetching static map:', error);
+    res.status(500).json({ error: 'Failed to fetch static map image' });
+  }
+};
+
+module.exports = {
+  createPackage,
+  addLocationToPackage,
+  searchLocation,
+  getPackages,
+  getStaticMap,
+};
