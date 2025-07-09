@@ -4,51 +4,52 @@ $(document).ready(function () {
   let packages = [];
   let customers = [];
   const pathParts = window.location.pathname.split('/');
-  const companyId = pathParts[pathParts.length - 1];
-  const isValidId = /^[a-fA-F0-9]{24}$/.test(companyId);
+  const buisnessId = pathParts[pathParts.length - 1];
+  const isValidId = /^[a-fA-F0-9]{24}$/.test(buisnessId);
 
   if (!isValidId) {
     $('.container').html(`
       <div style="text-align:center; margin-top:80px; font-size:1.5rem; color: red;">
-        Invalid Company Id
+        Invalid Buisness Id
       </div>
     `).show();
     return;
   }
   $('.container').show();
-function renderPackagesTable() {
-  const tbody = $('#package-table tbody');
-  tbody.empty();
-  if (!packages.length) {
-    tbody.append('<tr><td colspan="8" style="text-align:center;color:#aaa;">No packages found</td></tr>');
-    return;
+
+  function renderPackagesTable() {
+    const tbody = $('#package-table tbody');
+    tbody.empty();
+    if (!packages.length) {
+      tbody.append('<tr><td colspan="8" style="text-align:center;color:#aaa;">No packages found</td></tr>');
+      return;
+    }
+    packages.forEach(pkg => {
+      tbody.append(`
+        <tr>
+          <td><a href="#" class="package-path-link" data-id="${pkg._id}">${pkg._id}</a></td>
+          <td>${pkg.prod_id}</td>
+          <td>${pkg.name}</td>
+          <td>
+            <a href="#" class="customer-link" data-id="${pkg.customer && pkg.customer._id}">
+              ${pkg.customer && pkg.customer.name || ''}
+            </a>
+          </td>
+          <td>${new Date(pkg.start_date).toLocaleDateString()}</td>
+          <td>${new Date(pkg.eta).toLocaleDateString()}</td>
+          <td>${pkg.status}</td>
+          <td>
+            <button class="btn primary add-location-btn" data-id="${pkg._id}">Add Location</button>
+            <button class="btn primary view-path-btn" data-id="${pkg._id}">View Path</button>
+          </td>
+        </tr>
+      `);
+    });
   }
-  packages.forEach(pkg => {
-    tbody.append(`
-      <tr>
-        <td><a href="#" class="package-path-link" data-id="${pkg._id}">${pkg._id}</a></td>
-        <td>${pkg.prod_id}</td>
-        <td>${pkg.name}</td>
-        <td>
-          <a href="#" class="customer-link" data-id="${pkg.customer && pkg.customer._id}">
-            ${pkg.customer && pkg.customer.name || ''}
-          </a>
-        </td>
-        <td>${new Date(pkg.start_date).toLocaleDateString()}</td>
-        <td>${new Date(pkg.eta).toLocaleDateString()}</td>
-        <td>${pkg.status}</td>
-        <td>
-          <button class="btn primary add-location-btn" data-id="${pkg._id}">Add Location</button>
-          <button class="btn primary view-path-btn" data-id="${pkg._id}">View Path</button>
-        </td>
-      </tr>
-    `);
-  });
-}
   // --- 1. Load & display packages ---
 function loadPackages() { 
   $.ajax({
-    url: `/companies/${companyId}/packages`,
+    url: `/packages/${buisnessId}`,
     method: 'GET',
     dataType: 'json',
     success: function (data) { 
@@ -115,36 +116,35 @@ function insertPackageSorted(newPackage) {
       const pkg = {
         prod_id: $('#prod_id').val(),
         name: $('#name').val(),
-        customer: $('#customer').val(),
+        customer_id: $('#customer').val(),
         start_date: new Date($('#start_date').val()).getTime(),
         eta: new Date($('#eta').val()).getTime(),
-        status: $('#status').val()
+        status: $('#status').val(),
+        buisness_id: buisnessId
       };
       $.ajax({
-        url: `/companies/${companyId}/packages`,
+        url: `/packages`,
         method: 'POST',
         contentType: 'application/json',
         data: JSON.stringify(pkg),
-success: function (resp) {
-  $('#add-package-modal').addClass('hidden');
-  showToast('Package added!');
-  // Build new package
-  const customer = getCustomerById($('#customer').val());
-  const newPackage = {
-    _id: resp.id,
-    prod_id: $('#prod_id').val(),
-    name: $('#name').val(),
-    customer: customer,
-    start_date: new Date($('#start_date').val()).toISOString(),
-    eta: new Date($('#eta').val()).toISOString(),
-    status: $('#status').val(),
-    path: [],
-    company: companyId
-  };
-  insertPackageSorted(newPackage); // Use your function above!
-  renderPackagesTable();           // See next step for this function
-},
-
+        success: function (resp) {
+          $('#add-package-modal').addClass('hidden');
+          showToast('Package added!');
+          const customer = getCustomerById($('#customer').val());
+          const newPackage = {
+            _id: resp._id,
+            prod_id: $('#prod_id').val(),
+            name: $('#name').val(),
+            customer: customer,
+            start_date: new Date($('#start_date').val()).toISOString(),
+            eta: new Date($('#eta').val()).toISOString(),
+            status: $('#status').val(),
+            path: [],
+            buisness: buisnessId
+          };
+          insertPackageSorted(newPackage);
+          renderPackagesTable();
+        },
         error: function (xhr) {
           let msg = xhr.responseJSON?.error || 'Failed to add package';
           showToast(msg, true);

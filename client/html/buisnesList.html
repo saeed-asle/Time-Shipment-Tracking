@@ -2,26 +2,26 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Company List</title>
-  <link rel="stylesheet" href="../css/companyList.css" />
+  <title>buisnes List</title>
+  <link rel="stylesheet" href="../css/buisnesList.css" />
   <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.5/dist/jquery.validate.min.js"></script>
-  <script src="../js/companyList.js" type="module"></script>
+  <script src="../js/buisnesList.js" type="module"></script>
 </head>
 <body>
   <div class="container">
     <div id="toast" class="toast hidden"></div>
 
-    <h1>Company List</h1>
+    <h1>buisnes List</h1>
     <button id="add-customer-top" class="btn primary">Add Customer</button>
 
-    <button id="add-company-top" class="btn primary">Add Company</button>
+    <button id="add-buisnes-top" class="btn primary">Add buisnes</button>
 
-    <div id="company-list" class="table-container">
-      <table id="company-table">
+    <div id="buisnes-list" class="table-container">
+      <table id="buisnes-table">
         <thead>
           <tr>
-            <th>Company ID</th>
+            <th>buisnes ID</th>
             <th>Name</th>
             <th>Website</th>
           </tr>
@@ -30,22 +30,22 @@
       </table>
           <button id="add-customer-bottom" class="btn primary">Add Customer</button>
 
-      <button id="add-company-bottom" class="btn primary">Add Company</button>
+      <button id="add-buisnes-bottom" class="btn primary">Add buisnes</button>
     </div>
 
-    <!-- Add Company Modal -->
-    <div id="add-company-modal" class="modal hidden">
+    <!-- Add buisnes Modal -->
+    <div id="add-buisnes-modal" class="modal hidden">
       <div class="modal-content">
         <span class="close-btn" id="close-add-modal">&times;</span>
-        <h2>Add New Company</h2>
-        <form id="company-form">
+        <h2>Add New buisnes</h2>
+        <form id="buisnes-form">
           <div class="form-group">
-            <label for="company-name">Name</label>
-            <input type="text" id="company-name" name="name" required />
+            <label for="buisnes-name">Name</label>
+            <input type="text" id="buisnes-name" name="name" required />
           </div>
           <div class="form-group">
-            <label for="company-website">Website</label>
-            <input type="url" id="company-website" name="website" required />
+            <label for="buisnes-website">Website</label>
+            <input type="url" id="buisnes-website" name="website" required />
           </div>
           <button type="submit" class="btn primary">Submit</button>
         </form>

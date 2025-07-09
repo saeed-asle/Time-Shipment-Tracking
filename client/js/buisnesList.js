@@ -1,26 +1,26 @@
 $(document).ready(function () {
-  let companies = [];
+  let buisnesList = [];
 
   function showToast(message, isError = false) {
     $('#toast').text(message).removeClass('hidden').toggleClass('error', isError);
     setTimeout(() => $('#toast').addClass('hidden'), 2000);
   }
 
-  function renderCompaniesTable() {
-    const tbody = $('#company-table tbody');
+  function renderBuisnesTable() {
+    const tbody = $('#buisnes-table tbody');
     tbody.empty();
-    if (!companies.length) {
-      tbody.append('<tr><td colspan="3" style="text-align:center; color:#aaa;">No companies found</td></tr>');
+    if (!buisnesList.length) {
+      tbody.append('<tr><td colspan="3" style="text-align:center; color:#aaa;">No businesses found</td></tr>');
     } else {
-      companies.forEach(company => {
+      buisnesList.forEach(buisnes => {
         tbody.append(`
           <tr>
-            <td>${company._id}</td>
+            <td>${buisnes._id}</td>
             <td>
-              <a href="/list/${company._id}" class="company-link">${company.name}</a>
+              <a href="/list/${buisnes._id}" class="buisnes-link">${buisnes.name}</a>
             </td>
             <td>
-              <a href="${company.website}" target="_blank" rel="noopener noreferrer">${company.website}</a>
+              <a href="${buisnes.site_url}" target="_blank" rel="noopener noreferrer">${buisnes.site_url}</a>
             </td>
           </tr>
         `);
@@ -28,56 +28,55 @@ $(document).ready(function () {
     }
   }
 
-  function loadCompanies() {
+  function loadBuisnesList() {
     $.ajax({
-      url: '/companies',
+      url: '/buisness',
       method: 'GET',
       dataType: 'json',
       success: function (data) {
-        companies = data;
-        renderCompaniesTable();
+        buisnesList = data;
+        renderBuisnesTable();
       },
       error: function () {
-        showToast('Failed to load companies', true);
+        showToast('Failed to load businesses', true);
       }
     });
   }
 
-  // --- COMPANY MODAL ---
-  $('#add-company-top, #add-company-bottom').on('click', function () {
-    $('#add-company-modal').removeClass('hidden');
+  // --- BUISNES MODAL ---
+  $('#add-buisnes-top, #add-buisnes-bottom').on('click', function () {
+    $('#add-buisnes-modal').removeClass('hidden');
   });
 
   $('#close-add-modal').on('click', function () {
-    $('#add-company-modal').addClass('hidden');
-    $('#company-form')[0].reset();
-    $('#company-form').validate().resetForm();
+    $('#add-buisnes-modal').addClass('hidden');
+    $('#buisnes-form')[0].reset();
+    $('#buisnes-form').validate().resetForm();
   });
 
-  $('#company-form').validate({
-    submitHandler: function (form) {
+  $('#buisnes-form').validate({
+    submitHandler: function () {
       const formData = {
-        name: $('#company-name').val(),
-        website: $('#company-website').val()
+        name: $('#buisnes-name').val(),
+        site_url: $('#buisnes-website').val()
       };
       $.ajax({
-        url: '/companies',
+        url: '/buisness',
         method: 'POST',
         contentType: 'application/json',
         data: JSON.stringify(formData),
         success: function (resp) {
-          $('#add-company-modal').addClass('hidden');
-          showToast('Company added!');
-          // Add manually to array
-          companies.push({
-            _id: resp.id,
-            name: $('#company-name').val(),
-            website: $('#company-website').val(),
+          $('#add-buisnes-modal').addClass('hidden');
+          showToast('Buisnes added!');
+          buisnesList.push({
+            _id: resp._id,
+            name: $('#buisnes-name').val(),
+            site_url: $('#buisnes-website').val(),
             __v: 0
           });
-          renderCompaniesTable();
-          $('#company-form')[0].reset();
-          $('#company-form').validate().resetForm();
+          renderBuisnesTable();
+          $('#buisnes-form')[0].reset();
+          $('#buisnes-form').validate().resetForm();
         },
         error: function (xhr) {
           let err = xhr.responseJSON && xhr.responseJSON.error
@@ -85,10 +84,10 @@ $(document).ready(function () {
                 ? xhr.responseJSON.error
                 : Object.values(xhr.responseJSON.error).map(e=>e.message).join(', '))
             : 'Unknown error';
-          showToast('Failed to add company: ' + err, true);
+          showToast('Failed to add buisnes: ' + err, true);
         }
       });
-      return false; 
+      return false;
     }
   });
 
@@ -139,5 +138,5 @@ $(document).ready(function () {
   });
 
   $('.container').show();
-  loadCompanies();
+  loadBuisnesList();
 });

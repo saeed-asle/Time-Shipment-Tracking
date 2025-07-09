@@ -1,19 +1,20 @@
 // views/package.js
 const Package = require('../models/Package');
-const Company = require('../models/Company');
+const Buisnes = require('../models/Buisnes');
 const Customer = require('../models/Customer');
 const axios = require('axios');
 const LOCATIONIQ_API_KEY = process.env.LOCATIONIQ_API_KEY;
 
 const createPackage = async (req, res) => {
   try {
-    if (!req.params.companyid || typeof req.params.companyid !== 'string' || req.params.companyid.length !== 24) {
-      return res.status(400).json({ error: 'Invalid company id' });
+    // Should match your route param!
+    if (!req.body.buisness_id || typeof req.body.buisness_id !== 'string' || req.body.buisness_id.length !== 24) {
+      return res.status(400).json({ error: 'Invalid buisness id' });
     }
-    const company = await Company.findById(req.params.companyid);
-    if (!company) return res.status(404).json({ error: 'Company not found' });
+    const buisness = await Buisnes.findById(req.body.buisness_id);
+    if (!buisness) return res.status(404).json({ error: 'Buisness not found' });
 
-    const customerId = req.body.customer;
+    const customerId = req.body.customer_id;
     if (!customerId || typeof customerId !== 'string' || customerId.length !== 24) {
       return res.status(400).json({ error: 'Invalid customer id' });
     }
@@ -41,7 +42,7 @@ const createPackage = async (req, res) => {
       await customer.save();
     }
 
-    if (new Date(req.body.eta) < new Date(req.body.start_date)) {
+ if (req.body.eta < req.body.start_date) {
       return res.status(400).json({ error: 'ETA must be after start date.' });
     }
 
@@ -51,12 +52,12 @@ const createPackage = async (req, res) => {
       start_date: req.body.start_date,
       eta: req.body.eta,
       status: req.body.status,
-      company: company._id,
+      buisness: buisness._id, // updated field!
       customer: customer._id,
       path: req.body.path || []
     });
     await pkg.save();
-    res.status(201).json({ message: 'Package created', id: pkg._id });
+    res.status(201).json({ message: 'Package created', _id: pkg._id });
   } catch (err) {
     res.status(400).json({ error: err.errors || err.message });
   }
@@ -119,17 +120,18 @@ const searchLocation = async (req, res) => {
 
 const getPackages = async (req, res) => {
   try {
-    if (!req.params.companyid || typeof req.params.companyid !== 'string' || req.params.companyid.length !== 24) {
-      return res.status(400).json({ error: 'Invalid company id' });
+    if (!req.params.buisnessid || typeof req.params.buisnessid !== 'string' || req.params.buisnessid.length !== 24) {
+      return res.status(400).json({ error: 'Invalid buisness id' });
     }
-    const packages = await Package.find({ company: req.params.companyid })
+    const packages = await Package.find({ buisness: req.params.buisnessid })
       .populate('customer')
       .sort({ start_date: -1 });
-    res.json(packages);
+      res.json(packages);
   } catch (err) {
     res.status(400).json({ error: err.errors || err.message });
   }
 };
+
 const getStaticMap = async (req, res) => {
   try {
     const { packageid } = req.params;

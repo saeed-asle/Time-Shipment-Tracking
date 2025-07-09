@@ -9,7 +9,7 @@ const port = 3001;
 
 app.use(express.static(path.join(__dirname, 'client')));
 app.get('/list', (req, res) => {
-  res.sendFile(path.join(__dirname, 'client', 'html', 'companyList.html'));
+  res.sendFile(path.join(__dirname, 'client', 'html', 'buisnesList.html'));
 });
 app.get('/list/:id', (req, res) => {
   res.sendFile(path.join(__dirname, 'client', 'html', 'packageList.html'));

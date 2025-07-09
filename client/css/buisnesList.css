@@ -51,7 +51,7 @@ input[type="submit"]:hover {
   overflow-x: auto;
 }
 
-#company-table {
+#buisnes-table {
   width: 100%;
   border-collapse: collapse;
   background-color: #2a2a2a;
@@ -60,30 +60,30 @@ input[type="submit"]:hover {
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
 }
 
-#company-table th,
-#company-table td {
+#buisnes-table th,
+#buisnes-table td {
   padding: 12px 16px;
   text-align: left;
   border-bottom: 1px solid #444;
 }
 
-#company-table th {
+#buisnes-table th {
   background-color: #333;
   color: #ffffff;
   font-weight: 600;
   font-size: 14px;
 }
 
-#company-table tr:hover {
+#buisnes-table tr:hover {
   background-color: #383838;
 }
 
-#company-table td a {
+#buisnes-table td a {
   color: #90caf9;
   text-decoration: none;
 }
 
-#company-table td a:hover {
+#buisnes-table td a:hover {
   text-decoration: underline;
 }
 
@@ -206,8 +206,8 @@ input[type="submit"]:hover {
     width: 96vw;
     font-size: 15px;
   }
-  #company-table th,
-  #company-table td {
+  #buisnes-table th,
+  #buisnes-table td {
     padding: 6px 8px;
   }
 }
