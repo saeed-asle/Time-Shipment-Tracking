@@ -1,25 +1,39 @@
 const express = require('express');
+const yup = require('yup');
+
 const buisnesCtrl = require('./views/buisnes');
 const customerCtrl = require('./views/customer');
 const packageCtrl = require('./views/package');
 const validate = require('../utils/validate');
-const { companySchema, customerSchema, packageSchema, objectIdSchema } = require('../utils/validator');
+
+const {
+  companySchema,
+  customerSchema,
+  packageSchema,
+  addLocationSchema,
+  searchLocationSchema,
+  paramPackageId,
+  paramBusinessId
+} = require('../utils/validator');
+
 const router = express.Router();
 
-router.post('/buisness', buisnesCtrl.createBuisnes);
+router.post('/buisness', validate(companySchema), buisnesCtrl.createBuisnes);
 router.get('/buisness', buisnesCtrl.getBuisnes);
 
-router.post('/customers', customerCtrl.createCustomer);
+router.post('/customers', validate(customerSchema), customerCtrl.createCustomer);
 router.get('/customers', customerCtrl.getCustomers);
 
-router.post('/packages',
+router.post('/packages', validate(packageSchema), packageCtrl.createPackage);
+router.get('/packages/:buisnessid', validate(null, paramBusinessId), packageCtrl.getPackages);
+router.get('/packages/:packageid/staticmap', validate(null, paramPackageId), packageCtrl.getStaticMap);
 
-  packageCtrl.createPackage
+router.put(
+  '/packages/:packageid/path',
+  validate(addLocationSchema, paramPackageId),
+  packageCtrl.addLocationToPackage
 );
-router.get('/packages/:packageid/staticmap', packageCtrl.getStaticMap);
 
-router.get('/packages/:buisnessid', packageCtrl.getPackages);
-router.put('/packages/:packageid/path', packageCtrl.addLocationToPackage);
-router.post('/location/search', packageCtrl.searchLocation);
+router.post('/location/search', validate(searchLocationSchema), packageCtrl.searchLocation);
 
 module.exports = router;

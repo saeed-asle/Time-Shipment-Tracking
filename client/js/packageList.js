@@ -1,6 +1,7 @@
-import { setupFormValidation } from './validator.js';
+import { setupFormValidation } from './packageValidator.js';
 
 $(document).ready(function () {
+  setupFormValidation ();
   let packages = [];
   let customers = [];
   const pathParts = window.location.pathname.split('/');
@@ -283,7 +284,6 @@ $('#package-table').on('click', '.view-path-btn', function (e) {
           showToast(json.message || 'No path data available', 'info');
         });
       }
-      // Blob stream to image
       return resp.blob().then(blob => {
         const url = URL.createObjectURL(blob);
         $('#map-image').attr('src', url).show();

@@ -1,112 +1,97 @@
 const yup = require('yup');
 
-// Company ID: integer between 1–10
-const companyIdSchema = yup
-  .mixed()
-  .required('companyid is required')
-  .test('is-valid-companyid', 'companyid must be an integer between 1 and 10', function (value) {
-    const num = Number(value);
-    return Number.isInteger(num) && num >= 1 && num <= 10;
-  });
+const objectIdSchema = yup.string()
+  .required('ID is required')
+  .matches(/^[a-f\d]{24}$/, 'Must be a valid MongoDB ObjectId');
 
-/**
- * Full package schema for creation
- */
-const packageSchema = yup.object({
-  id: yup.string().optional(),
-  prod_id: yup.string().required(),
+const companySchema = yup.object({
   name: yup.string()
-    .required()
-    .matches(/^[A-Za-z\s.,'-]*$/, 'Name must contain only English letters'),
+    .required('Company name is required')
+    .min(2)
+    .max(100)
+    .matches(/^[\u0590-\u05FF\w\s.,'-]{2,}$/, 'Invalid characters in company name'),
+  site_url: yup.string()
+    .required('Company site URL is required')
+    .url('Invalid URL format')
+}).noUnknown();
 
-  customer: yup
-    .string()
-    .required('Customer is required')
-    .matches(/^[a-fA-F0-9]{24}$/, 'Customer must be a valid ObjectId'),
+const customerSchema = yup.object({
+  name: yup.string()
+    .required('Customer name is required')
+    .min(2)
+    .max(100),
+  email: yup.string()
+    .required('Email is required')
+    .email('Invalid email format'),
+  address: yup.object({
+    street: yup.string().required('Street is required'),
+    number: yup.number().required('Number is required'),
+    city: yup.string().required('City is required')
+  }).required()
+}).noUnknown();
 
+const packageSchema = yup.object({
+  prod_id: yup.string()
+    .required('Product ID is required'),
+  name: yup.string()
+    .required('Package name is required'),
   start_date: yup.number()
-    .strict(true)
-    .typeError('Start date must be a valid timestamp')
-    .required('Start date is required'),
-
+    .required('Start date is required')
+    .typeError('Start date must be a timestamp'),
   eta: yup.number()
-    .strict(true)
-    .typeError('ETA must be a valid timestamp')
-    .required('ETA is required'),
-
+    .required('ETA is required')
+    .typeError('ETA must be a timestamp'),
   status: yup.string()
     .required()
-    .oneOf(["packed", "shipped", "intransit", "delivered"], 'Invalid status'),
-
+    .oneOf(['packed', 'shipped', 'intransit', 'delivered'], 'Invalid status'),
+  buisness_id: objectIdSchema.label('Business ID'),
+  customer_id: objectIdSchema.label('Customer ID'),
   path: yup.array().of(
     yup.object({
-      lon: yup.number().required().min(-180).max(180),
-      lat: yup.number().required().min(-90).max(90)
-    }).noUnknown()
+      lat: yup.number().required().min(-90).max(90),
+      lon: yup.number().required().min(-180).max(180)
+    })
   ).optional()
 }).noUnknown();
 
-/**
- * Partial package update: ETA or status (at least one)
- */
-const updateSchema = yup.object({
-  eta: yup.number()
-    .strict(true)
-    .typeError('ETA must be a valid timestamp')
-    .optional(),
-
-  status: yup.string()
-    .oneOf(["packed", "shipped", "intransit", "delivered"])
-    .optional()
-}).noUnknown().test(
-  'at-least-one',
-  'At least one of ETA or status must be provided',
-  value => value.eta != null || value.status != null
-);
-
-/**
- * Params: only companyid
- */
-const paramCompanySchema = yup.object({
-  companyid: companyIdSchema
-}).noUnknown();
-
-/**
- * Params: companyid + packageid
- */
-const paramCompanyPackageSchema = yup.object({
-  companyid: companyIdSchema,
-  packageid: yup.string().required()
-}).noUnknown();
-
-/**
- * Add a location (lat/lon)
- */
 const addLocationSchema = yup.object({
   lat: yup.number()
-    .required()
+    .required('Latitude is required')
     .min(-90)
     .max(90),
   lon: yup.number()
-    .required()
+    .required('Longitude is required')
     .min(-180)
     .max(180)
 }).noUnknown();
 
-/**
- * Search location by name string
- */
 const searchLocationSchema = yup.object({
   location: yup.string()
     .required('Location string is required')
     .matches(/^[A-Za-z\s.,'-]*$/, 'Location must contain only English letters')
 }).noUnknown();
 
+const paramPackageId = yup.object({
+  packageid: objectIdSchema.label('Package ID')
+}).noUnknown();
+
+const paramBusinessId = yup.object({
+  buisnessid: objectIdSchema.label('Business ID')
+}).noUnknown();
+
+const paramBusinessPackage = yup.object({
+  buisnessid: objectIdSchema.label('Business ID'),
+  packageid: objectIdSchema.label('Package ID')
+}).noUnknown();
+
 module.exports = {
+  companySchema,
+  customerSchema,
   packageSchema,
-  updateSchema,
-  paramCompanySchema,
-  paramCompanyPackageSchema,
   addLocationSchema,
-  searchLocationSchema
+  searchLocationSchema,
+  paramPackageId,
+  paramBusinessId,
+  paramBusinessPackage,
+  objectIdSchema
 };

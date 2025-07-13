@@ -1,4 +1,9 @@
+import { setupBuisnesValidation, setupCustomerValidation } from './buisnesValidation.js';
+
 $(document).ready(function () {
+  setupBuisnesValidation();
+  setupCustomerValidation();
+
   let buisnesList = [];
 
   function showToast(message, isError = false) {
@@ -54,42 +59,39 @@ $(document).ready(function () {
     $('#buisnes-form').validate().resetForm();
   });
 
-  $('#buisnes-form').validate({
-    submitHandler: function () {
-      const formData = {
-        name: $('#buisnes-name').val(),
-        site_url: $('#buisnes-website').val()
-      };
-      $.ajax({
-        url: '/buisness',
-        method: 'POST',
-        contentType: 'application/json',
-        data: JSON.stringify(formData),
-        success: function (resp) {
-          $('#add-buisnes-modal').addClass('hidden');
-          showToast('Buisnes added!');
-          buisnesList.push({
-            _id: resp._id,
-            name: $('#buisnes-name').val(),
-            site_url: $('#buisnes-website').val(),
-            __v: 0
-          });
-          renderBuisnesTable();
-          $('#buisnes-form')[0].reset();
-          $('#buisnes-form').validate().resetForm();
-        },
-        error: function (xhr) {
-          let err = xhr.responseJSON && xhr.responseJSON.error
-            ? (typeof xhr.responseJSON.error === 'string'
-                ? xhr.responseJSON.error
-                : Object.values(xhr.responseJSON.error).map(e=>e.message).join(', '))
-            : 'Unknown error';
-          showToast('Failed to add buisnes: ' + err, true);
-        }
-      });
-      return false;
-    }
-  });
+  window.handleBuisnesSubmit = function () {
+    const formData = {
+      name: $('#buisnes-name').val(),
+      site_url: $('#buisnes-website').val()
+    };
+    $.ajax({
+      url: '/buisness',
+      method: 'POST',
+      contentType: 'application/json',
+      data: JSON.stringify(formData),
+      success: function (resp) {
+        $('#add-buisnes-modal').addClass('hidden');
+        showToast('Buisnes added!');
+        buisnesList.push({
+          _id: resp._id,
+          name: formData.name,
+          site_url: formData.site_url
+        });
+        renderBuisnesTable();
+        $('#buisnes-form')[0].reset();
+        $('#buisnes-form').validate().resetForm();
+      },
+      error: function (xhr) {
+        const err = xhr.responseJSON?.error
+          ? (typeof xhr.responseJSON.error === 'string'
+              ? xhr.responseJSON.error
+              : Object.values(xhr.responseJSON.error).map(e => e.message).join(', '))
+          : 'Unknown error';
+        showToast('Failed to add buisnes: ' + err, true);
+      }
+    });
+    return false;
+  };
 
   // --- CUSTOMER MODAL ---
   $('#add-customer-top, #add-customer-bottom').on('click', function () {
@@ -102,40 +104,39 @@ $(document).ready(function () {
     $('#customer-form').validate().resetForm();
   });
 
-  $('#customer-form').validate({
-    submitHandler: function () {
-      const customerData = {
-        name: $('#customer-name').val(),
-        email: $('#customer-email').val(),
-        address: {
-          street: $('#customer-street').val(),
-          number: parseInt($('#customer-number').val(), 10),
-          city: $('#customer-city').val()
-        }
-      };
-      $.ajax({
-        url: '/customers',
-        method: 'POST',
-        contentType: 'application/json',
-        data: JSON.stringify(customerData),
-        success: function () {
-          $('#add-customer-modal').addClass('hidden');
-          showToast('Customer added!');
-          $('#customer-form')[0].reset();
-          $('#customer-form').validate().resetForm();
-        },
-        error: function (xhr) {
-          let err = xhr.responseJSON && xhr.responseJSON.error
-            ? (typeof xhr.responseJSON.error === 'string'
-                ? xhr.responseJSON.error
-                : Object.values(xhr.responseJSON.error).map(e=>e.message).join(', '))
-            : 'Unknown error';
-          showToast('Failed to add customer: ' + err, true);
-        }
-      });
-      return false;
-    }
-  });
+  window.handleCustomerSubmit = function () {
+    const customerData = {
+      name: $('#customer-name').val(),
+      email: $('#customer-email').val(),
+      address: {
+        street: $('#customer-street').val(),
+        number: parseInt($('#customer-number').val(), 10),
+        city: $('#customer-city').val()
+      }
+    };
+
+    $.ajax({
+      url: '/customers',
+      method: 'POST',
+      contentType: 'application/json',
+      data: JSON.stringify(customerData),
+      success: function () {
+        $('#add-customer-modal').addClass('hidden');
+        showToast('Customer added!');
+        $('#customer-form')[0].reset();
+        $('#customer-form').validate().resetForm();
+      },
+      error: function (xhr) {
+        const err = xhr.responseJSON?.error
+          ? (typeof xhr.responseJSON.error === 'string'
+              ? xhr.responseJSON.error
+              : Object.values(xhr.responseJSON.error).map(e => e.message).join(', '))
+          : 'Unknown error';
+        showToast('Failed to add customer: ' + err, true);
+      }
+    });
+    return false;
+  };
 
   $('.container').show();
   loadBuisnesList();
