@@ -3,20 +3,31 @@
 <head>
   <meta charset="UTF-8" />
   <title>buisnes List</title>
+
+  <!-- Link to CSS file -->
   <link rel="stylesheet" href="../css/buisnesList.css" />
+
+  <!-- jQuery library -->
   <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+  <!-- jQuery form validation plugin -->
   <script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.5/dist/jquery.validate.min.js"></script>
+
+  <!-- Your custom JS file (as ES6 module) -->
   <script src="../js/buisnesList.js" type="module"></script>
 </head>
 <body>
   <div class="container">
+    <!-- Hidden message popup -->
     <div id="toast" class="toast hidden"></div>
 
     <h1>buisnes List</h1>
-    <button id="add-customer-top" class="btn primary">Add Customer</button>
 
+    <!-- Top buttons to open modals -->
+    <button id="add-customer-top" class="btn primary">Add Customer</button>
     <button id="add-buisnes-top" class="btn primary">Add buisnes</button>
 
+    <!-- Table to show business list -->
     <div id="buisnes-list" class="table-container">
       <table id="buisnes-table">
         <thead>
@@ -26,14 +37,15 @@
             <th>Website</th>
           </tr>
         </thead>
-        <tbody></tbody>
+        <tbody></tbody> <!-- JavaScript will fill this -->
       </table>
-          <button id="add-customer-bottom" class="btn primary">Add Customer</button>
 
+      <!-- Bottom buttons to open modals -->
+      <button id="add-customer-bottom" class="btn primary">Add Customer</button>
       <button id="add-buisnes-bottom" class="btn primary">Add buisnes</button>
     </div>
 
-    <!-- Add buisnes Modal -->
+    <!-- Modal to add new business -->
     <div id="add-buisnes-modal" class="modal hidden">
       <div class="modal-content">
         <span class="close-btn" id="close-add-modal">&times;</span>
@@ -51,35 +63,37 @@
         </form>
       </div>
     </div>
+
+    <!-- Modal to add new customer -->
     <div id="add-customer-modal" class="modal hidden">
-    <div class="modal-content">
-      <span class="close-btn" id="close-customer-modal">&times;</span>
-      <h2>Add New Customer</h2>
-      <form id="customer-form">
-        <div class="form-group">
-          <label for="customer-name">Name</label>
-          <input type="text" id="customer-name" name="name" required />
-        </div>
-        <div class="form-group">
-          <label for="customer-email">Email</label>
-          <input type="email" id="customer-email" name="email" required />
-        </div>
-        <div class="form-group">
-          <label for="customer-street">Street</label>
-          <input type="text" id="customer-street" name="street" required />
-        </div>
-        <div class="form-group">
-          <label for="customer-number">Street Number</label>
-          <input type="number" id="customer-number" name="number" required />
-        </div>
-        <div class="form-group">
-          <label for="customer-city">City</label>
-          <input type="text" id="customer-city" name="city" required />
-        </div>
-        <button type="submit" class="btn primary">Submit</button>
-      </form>
+      <div class="modal-content">
+        <span class="close-btn" id="close-customer-modal">&times;</span>
+        <h2>Add New Customer</h2>
+        <form id="customer-form">
+          <div class="form-group">
+            <label for="customer-name">Name</label>
+            <input type="text" id="customer-name" name="name" required />
+          </div>
+          <div class="form-group">
+            <label for="customer-email">Email</label>
+            <input type="email" id="customer-email" name="email" required />
+          </div>
+          <div class="form-group">
+            <label for="customer-street">Street</label>
+            <input type="text" id="customer-street" name="street" required />
+          </div>
+          <div class="form-group">
+            <label for="customer-number">Street Number</label>
+            <input type="number" id="customer-number" name="number" required />
+          </div>
+          <div class="form-group">
+            <label for="customer-city">City</label>
+            <input type="text" id="customer-city" name="city" required />
+          </div>
+          <button type="submit" class="btn primary">Submit</button>
+        </form>
+      </div>
     </div>
-  </div>
   </div>
 </body>
 </html>

@@ -3,18 +3,29 @@
 <head>
   <meta charset="UTF-8" />
   <title>Package List</title>
+
+  <!-- CSS file for styles -->
   <link rel="stylesheet" href="../css/packageList.css" />
+
+  <!-- jQuery and validation plugin -->
   <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.5/dist/jquery.validate.min.js"></script>
+
+  <!-- JavaScript file for page logic -->
   <script src="../js/packageList.js" type="module"></script>
 </head>
 <body>
   <div class="container">
+    <!-- Hidden toast message for alerts -->
     <div id="toast" class="toast hidden"></div>
 
+    <!-- Page title -->
     <h1>Package List</h1>
+
+    <!-- Button to open the "Add Package" form -->
     <button id="add-package-top" class="btn primary">Add Package</button>
 
+    <!-- Table to show all packages -->
     <div id="package-list" class="table-container">
       <table id="package-table">
         <thead>
@@ -26,14 +37,17 @@
             <th>Opened</th>
             <th>ETA</th>
             <th>Status</th>
-            <th>Actions</th>
+            <th>Actions</th> <!-- Like view, add location, show map -->
           </tr>
         </thead>
-        <tbody></tbody>
+        <tbody></tbody> <!-- JavaScript will fill this -->
       </table>
+
+      <!-- Another "Add Package" button at bottom -->
       <button id="add-package-bottom" class="btn primary">Add Package</button>
     </div>
 
+    <!-- Show customer info modal -->
     <div id="customer-modal" class="modal hidden">
       <div class="modal-content">
         <span class="close-btn" id="close-customer-modal">&times;</span>
@@ -41,11 +55,11 @@
         <p><strong>Name:</strong> <span id="cust-name"></span></p>
         <p><strong>Email:</strong> <span id="cust-email"></span></p>
         <p><strong>Address:</strong></p>
-        <ul id="cust-address"></ul>
+        <ul id="cust-address"></ul> <!-- List for street, city, number -->
       </div>
     </div>
 
-    <!-- Location Add Modal -->
+    <!-- Add location to package modal -->
     <div id="location-modal" class="modal hidden">
       <div class="modal-content">
         <span class="close-btn" id="close-location-modal">&times;</span>
@@ -61,16 +75,16 @@
       </div>
     </div>
 
-    <!-- Path View Modal -->
+    <!-- Show package path (list of locations) -->
     <div id="path-modal" class="modal hidden">
       <div class="modal-content">
         <span class="close-btn" id="close-path-modal">&times;</span>
         <h2>Package Path</h2>
-        <div id="path-details"></div>
+        <div id="path-details"></div> <!-- JS fills location info here -->
       </div>
     </div>
 
-    <!-- Add New Package Modal -->
+    <!-- Add a new package modal form -->
     <div id="add-package-modal" class="modal hidden">
       <div class="modal-content">
         <span class="close-btn" id="close-add-modal">&times;</span>
@@ -86,8 +100,9 @@
           </div>
           <div class="form-group">
             <label for="customer">Customer</label>
-<select id="customer" name="customer_id" required>
+            <select id="customer" name="customer_id" required>
               <option value="">Select customer...</option>
+              <!-- Customers will be added here by JS -->
             </select>
           </div>
           <div class="form-group">
@@ -112,16 +127,16 @@
       </div>
     </div>
 
-    <!-- Static Map Modal -->
-<div id="map-modal" class="modal hidden">
-  <div class="modal-content map-modal-content">
-    <span class="close-btn" id="close-map-modal">&times;</span>
-    <div class="modal-body">
-      <div id="map-loader" class="spinner"></div>
-      <img id="map-image" src="" alt="Map" style="display: none;" />
+    <!-- Static map image modal -->
+    <div id="map-modal" class="modal hidden">
+      <div class="modal-content map-modal-content">
+        <span class="close-btn" id="close-map-modal">&times;</span>
+        <div class="modal-body">
+          <div id="map-loader" class="spinner"></div> <!-- Loading spinner -->
+          <img id="map-image" src="" alt="Map" style="display: none;" /> <!-- Map shows here -->
+        </div>
+      </div>
     </div>
-  </div>
-</div>
   </div>
 </body>
 </html>

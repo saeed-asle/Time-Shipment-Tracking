@@ -1,22 +1,28 @@
 import { setupBuisnesValidation, setupCustomerValidation } from './buisnesValidation.js';
 
+// Wait for the page to fully load
 $(document).ready(function () {
-  setupBuisnesValidation();
-  setupCustomerValidation();
+  setupBuisnesValidation(); // setup rules for business form
+  setupCustomerValidation(); // setup rules for customer form
 
-  let buisnesList = [];
+  let buisnesList = []; // store all businesses
 
+  // Show a small message (toast) on screen
   function showToast(message, isError = false) {
     $('#toast').text(message).removeClass('hidden').toggleClass('error', isError);
-    setTimeout(() => $('#toast').addClass('hidden'), 2000);
+    setTimeout(() => $('#toast').addClass('hidden'), 2000); // hide after 2 seconds
   }
 
+  // Draw the table with business info
   function renderBuisnesTable() {
     const tbody = $('#buisnes-table tbody');
     tbody.empty();
+
     if (!buisnesList.length) {
+      // If list is empty
       tbody.append('<tr><td colspan="3" style="text-align:center; color:#aaa;">No businesses found</td></tr>');
     } else {
+      // For each business, add a row
       buisnesList.forEach(buisnes => {
         tbody.append(`
           <tr>
@@ -33,6 +39,7 @@ $(document).ready(function () {
     }
   }
 
+  // Load all businesses from the server
   function loadBuisnesList() {
     $.ajax({
       url: '/buisness',
@@ -40,30 +47,35 @@ $(document).ready(function () {
       dataType: 'json',
       success: function (data) {
         buisnesList = data;
-        renderBuisnesTable();
+        renderBuisnesTable(); // draw the table
       },
       error: function () {
-        showToast('Failed to load businesses', true);
+        showToast('Failed to load businesses', true); // show error
       }
     });
   }
 
-  // --- BUISNES MODAL ---
+  // --- BUISNESS FORM LOGIC ---
+
+  // When top or bottom "Add Business" button is clicked
   $('#add-buisnes-top, #add-buisnes-bottom').on('click', function () {
     $('#add-buisnes-modal').removeClass('hidden');
   });
 
+  // Close the business modal
   $('#close-add-modal').on('click', function () {
     $('#add-buisnes-modal').addClass('hidden');
-    $('#buisnes-form')[0].reset();
-    $('#buisnes-form').validate().resetForm();
+    $('#buisnes-form')[0].reset(); // clear fields
+    $('#buisnes-form').validate().resetForm(); // clear errors
   });
 
+  // Handle business form submission
   window.handleBuisnesSubmit = function () {
     const formData = {
       name: $('#buisnes-name').val(),
       site_url: $('#buisnes-website').val()
     };
+
     $.ajax({
       url: '/buisness',
       method: 'POST',
@@ -77,7 +89,7 @@ $(document).ready(function () {
           name: formData.name,
           site_url: formData.site_url
         });
-        renderBuisnesTable();
+        renderBuisnesTable(); // update table
         $('#buisnes-form')[0].reset();
         $('#buisnes-form').validate().resetForm();
       },
@@ -90,20 +102,25 @@ $(document).ready(function () {
         showToast('Failed to add buisnes: ' + err, true);
       }
     });
-    return false;
+
+    return false; // stop default form action
   };
 
-  // --- CUSTOMER MODAL ---
+  // --- CUSTOMER FORM LOGIC ---
+
+  // Show customer modal
   $('#add-customer-top, #add-customer-bottom').on('click', function () {
     $('#add-customer-modal').removeClass('hidden');
   });
 
+  // Close customer modal
   $('#close-customer-modal').on('click', function () {
     $('#add-customer-modal').addClass('hidden');
     $('#customer-form')[0].reset();
     $('#customer-form').validate().resetForm();
   });
 
+  // Handle customer form submission
   window.handleCustomerSubmit = function () {
     const customerData = {
       name: $('#customer-name').val(),
@@ -135,9 +152,11 @@ $(document).ready(function () {
         showToast('Failed to add customer: ' + err, true);
       }
     });
+
     return false;
   };
 
+  // Show the main page content and load businesses
   $('.container').show();
   loadBuisnesList();
 });

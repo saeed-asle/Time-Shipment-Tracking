@@ -1,22 +1,22 @@
 export function setupFormValidation() {
-  // Custom rule: ETA must be the same or after start date
+  // --- Custom Rule: ETA must be same or after start date ---
   $.validator.addMethod('etaAfterStart', function (value, element, paramSelector) {
-    const startDate = new Date($(paramSelector).val());
-    const etaDate = new Date(value);
+    const startDate = new Date($(paramSelector).val()); // get start date
+    const etaDate = new Date(value);                    // get ETA
     return !isNaN(startDate) && !isNaN(etaDate) && etaDate >= startDate;
   }, 'ETA must be the same day or after the start date');
 
-  // English-only characters for name/SKU
+  // --- Custom Rule: Only English letters, numbers, and symbols ---
   $.validator.addMethod('englishOnly', function (value, element) {
     return this.optional(element) || /^[A-Za-z0-9 ,.'\-]+$/.test(value);
   }, 'Use only English letters, numbers, spaces, and punctuation.');
 
-  // Ensure URL starts with http or https
+  // --- Custom Rule: URL must start with http:// or https:// ---
   $.validator.addMethod('requireHttp', function (value) {
     return /^https?:\/\/.+/.test(value);
   }, 'URL must start with http:// or https://');
 
-  // --- Package Form ---
+  // === PACKAGE FORM VALIDATION ===
   if ($('#package-form').length) {
     $('#package-form').validate({
       rules: {
@@ -49,12 +49,12 @@ export function setupFormValidation() {
         status: 'Status is required'
       },
       submitHandler: window.handleAddSubmit || function (form) {
-        form.submit();
+        form.submit(); // if form is valid, submit
       }
     });
   }
 
-  // --- Company Form ---
+  // === COMPANY FORM VALIDATION ===
   if ($('#company-form').length) {
     $('#company-form').validate({
       rules: {
@@ -78,7 +78,7 @@ export function setupFormValidation() {
     });
   }
 
-  // --- Customer Form ---
+  // === CUSTOMER FORM VALIDATION ===
   if ($('#customer-form').length) {
     $('#customer-form').validate({
       rules: {
@@ -117,8 +117,9 @@ export function setupFormValidation() {
     });
   }
 
-  // --- Edit Form (ETA/Status) ---
+  // === EDIT FORM VALIDATION (ETA or Status) ===
   if ($('#edit-form').length) {
+    // Custom Rule: must change at least ETA or Status
     $.validator.addMethod('atLeastOneChange', function () {
       const eta = $('#edit-eta');
       const status = $('#edit-status');
@@ -127,10 +128,10 @@ export function setupFormValidation() {
     }, 'You must change at least ETA or Status');
 
     $('#edit-form').validate({
-      ignore: [],
+      ignore: [], // include hidden fields too
       rules: {
         eta: { required: true, date: true },
-        dummy: { atLeastOneChange: true }
+        dummy: { atLeastOneChange: true } // trigger custom rule
       },
       messages: {
         eta: {
@@ -144,7 +145,7 @@ export function setupFormValidation() {
     });
   }
 
-  // --- Location Form ---
+  // === LOCATION FORM VALIDATION ===
   if ($('#location-form').length) {
     $('#location-form').validate({
       rules: {
