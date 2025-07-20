@@ -2,10 +2,82 @@ import { setupBuisnesValidation, setupCustomerValidation } from './buisnesValida
 
 // Wait for the page to fully load
 $(document).ready(function () {
+  let buisnesList = []; // store all businesses
+  // Handle business form submission
+  window.handleBuisnesSubmit = function () {
+    const formData = {
+      name: $('#buisnes-name').val(),
+      site_url: $('#buisnes-website').val()
+    };
+
+    $.ajax({
+      url: '/buisness',
+      method: 'POST',
+      contentType: 'application/json',
+      data: JSON.stringify(formData),
+      success: function (resp) {
+        $('#add-buisnes-modal').addClass('hidden');
+        showToast('Buisnes added!');
+        buisnesList.push({
+          _id: resp._id,
+          name: formData.name,
+          site_url: formData.site_url
+        });
+        renderBuisnesTable(); // update table
+        $('#buisnes-form')[0].reset();
+        $('#buisnes-form').validate().resetForm();
+      },
+      error: function (xhr) {
+        const err = xhr.responseJSON?.error
+          ? (typeof xhr.responseJSON.error === 'string'
+              ? xhr.responseJSON.error
+              : Object.values(xhr.responseJSON.error).map(e => e.message).join(', '))
+          : 'Unknown error';
+        showToast('Failed to add buisnes: ' + err, true);
+      }
+    });
+
+    return false; // stop default form action
+  };
+
+  // Handle customer form submission
+  window.handleCustomerSubmit = function () {
+    const customerData = {
+      name: $('#customer-name').val(),
+      email: $('#customer-email').val(),
+      address: {
+        street: $('#customer-street').val(),
+        number: parseInt($('#customer-number').val(), 10),
+        city: $('#customer-city').val()
+      }
+    };
+
+    $.ajax({
+      url: '/customers',
+      method: 'POST',
+      contentType: 'application/json',
+      data: JSON.stringify(customerData),
+      success: function () {
+        $('#add-customer-modal').addClass('hidden');
+        showToast('Customer added!');
+        $('#customer-form')[0].reset();
+        $('#customer-form').validate().resetForm();
+      },
+      error: function (xhr) {
+        const err = xhr.responseJSON?.error
+          ? (typeof xhr.responseJSON.error === 'string'
+              ? xhr.responseJSON.error
+              : Object.values(xhr.responseJSON.error).map(e => e.message).join(', '))
+          : 'Unknown error';
+        showToast('Failed to add customer: ' + err, true);
+      }
+    });
+
+    return false;
+  };
+
   setupBuisnesValidation(); // setup rules for business form
   setupCustomerValidation(); // setup rules for customer form
-
-  let buisnesList = []; // store all businesses
 
   // Show a small message (toast) on screen
   function showToast(message, isError = false) {
@@ -55,8 +127,6 @@ $(document).ready(function () {
     });
   }
 
-  // --- BUISNESS FORM LOGIC ---
-
   // When top or bottom "Add Business" button is clicked
   $('#add-buisnes-top, #add-buisnes-bottom').on('click', function () {
     $('#add-buisnes-modal').removeClass('hidden');
@@ -69,45 +139,6 @@ $(document).ready(function () {
     $('#buisnes-form').validate().resetForm(); // clear errors
   });
 
-  // Handle business form submission
-  window.handleBuisnesSubmit = function () {
-    const formData = {
-      name: $('#buisnes-name').val(),
-      site_url: $('#buisnes-website').val()
-    };
-
-    $.ajax({
-      url: '/buisness',
-      method: 'POST',
-      contentType: 'application/json',
-      data: JSON.stringify(formData),
-      success: function (resp) {
-        $('#add-buisnes-modal').addClass('hidden');
-        showToast('Buisnes added!');
-        buisnesList.push({
-          _id: resp._id,
-          name: formData.name,
-          site_url: formData.site_url
-        });
-        renderBuisnesTable(); // update table
-        $('#buisnes-form')[0].reset();
-        $('#buisnes-form').validate().resetForm();
-      },
-      error: function (xhr) {
-        const err = xhr.responseJSON?.error
-          ? (typeof xhr.responseJSON.error === 'string'
-              ? xhr.responseJSON.error
-              : Object.values(xhr.responseJSON.error).map(e => e.message).join(', '))
-          : 'Unknown error';
-        showToast('Failed to add buisnes: ' + err, true);
-      }
-    });
-
-    return false; // stop default form action
-  };
-
-  // --- CUSTOMER FORM LOGIC ---
-
   // Show customer modal
   $('#add-customer-top, #add-customer-bottom').on('click', function () {
     $('#add-customer-modal').removeClass('hidden');
@@ -119,42 +150,6 @@ $(document).ready(function () {
     $('#customer-form')[0].reset();
     $('#customer-form').validate().resetForm();
   });
-
-  // Handle customer form submission
-  window.handleCustomerSubmit = function () {
-    const customerData = {
-      name: $('#customer-name').val(),
-      email: $('#customer-email').val(),
-      address: {
-        street: $('#customer-street').val(),
-        number: parseInt($('#customer-number').val(), 10),
-        city: $('#customer-city').val()
-      }
-    };
-
-    $.ajax({
-      url: '/customers',
-      method: 'POST',
-      contentType: 'application/json',
-      data: JSON.stringify(customerData),
-      success: function () {
-        $('#add-customer-modal').addClass('hidden');
-        showToast('Customer added!');
-        $('#customer-form')[0].reset();
-        $('#customer-form').validate().resetForm();
-      },
-      error: function (xhr) {
-        const err = xhr.responseJSON?.error
-          ? (typeof xhr.responseJSON.error === 'string'
-              ? xhr.responseJSON.error
-              : Object.values(xhr.responseJSON.error).map(e => e.message).join(', '))
-          : 'Unknown error';
-        showToast('Failed to add customer: ' + err, true);
-      }
-    });
-
-    return false;
-  };
 
   // Show the main page content and load businesses
   $('.container').show();

@@ -1,45 +1,148 @@
-// import validation setup function
+// Import validation rules for the package form
 import { setupFormValidation } from './packageValidator.js';
 
-// run after page loads
 $(document).ready(function () {
-  setupFormValidation(); // set rules for form
+  let packages = [];   // store all packages
+  let customers = [];  // store all customers
 
-  let packages = [];     // list of packages for this business
-  let customers = [];    // list of all customers
-
-  // get business ID from the URL (like /list/abc123...)
+  // Get the business ID from the URL
   const pathParts = window.location.pathname.split('/');
   const buisnessId = pathParts[pathParts.length - 1];
 
-  // check if ID is valid MongoDB format (24 chars)
+  // Check if ID looks like a MongoDB ObjectId
   const isValidId = /^[a-fA-F0-9]{24}$/.test(buisnessId);
 
+  // If ID is bad, show error and stop
   if (!isValidId) {
-    // if not valid, show error message and stop
     $('.container').html(`
       <div style="text-align:center; margin-top:80px; font-size:1.5rem; color: red;">
-        Invalid Buisness Id
+        Invalid Business ID
       </div>
     `).show();
     return;
   }
 
-  // show page container if ID is OK
+  // If ID OK, show content
   $('.container').show();
 
-  // show all packages in table
+  // When user submits package form (after validation)
+  window.handleAddSubmit = function () {
+    const pkg = {
+      prod_id: $('#prod_id').val(),
+      name: $('#name').val(),
+      customer_id: $('#customer').val(),
+      start_date: new Date($('#start_date').val()).getTime(),
+      eta: new Date($('#eta').val()).getTime(),
+      status: $('#status').val(),
+      buisness_id: buisnessId
+    };
+
+    // Send the new package to server
+    $.ajax({
+      url: `/packages`,
+      method: 'POST',
+      contentType: 'application/json',
+      data: JSON.stringify(pkg),
+      success: function (resp) {
+        $('#add-package-modal').addClass('hidden');
+        showToast('Package added!');
+        
+        // Find full customer data
+        const customer = getCustomerById(pkg.customer_id);
+        
+        // Make a full new package object
+        const newPackage = {
+          ...pkg,
+          _id: resp._id,
+          customer,
+          start_date: new Date(pkg.start_date).toISOString(),
+          eta: new Date(pkg.eta).toISOString(),
+          path: []
+        };
+
+        insertPackageSorted(newPackage); // insert into list
+        renderPackagesTable();           // show updated table
+      },
+      error: xhr => showToast(xhr.responseJSON?.error || 'Failed to add package', true)
+    });
+
+    return false; // stop page reload
+  };
+
+  // When user searches a location
+  window.handleLocationSearch = function () {
+    const location = $('#location-input').val();
+    $('#location-suggestion').removeClass('hidden').html('Searching...');
+
+    // Ask server to search this place
+    $.ajax({
+      url: '/location/search',
+      method: 'POST',
+      contentType: 'application/json',
+      data: JSON.stringify({ location }),
+      success: function (data) {
+        // Show found result
+        $('#location-suggestion')
+          .data('lat', data.lat)
+          .data('lon', data.lon)
+          .html(`
+            <strong>Found Address:</strong> ${data.address}<br>
+            <strong>Latitude:</strong> ${data.lat}<br>
+            <strong>Longitude:</strong> ${data.lon}<br>
+            <button id="add-location-final" class="btn primary" style="margin-top:10px;">Add This Location</button>
+          `);
+      },
+      error: xhr => {
+        console.error('Location search failed:', xhr);
+        $('#location-suggestion').html(xhr.responseJSON?.error || 'Location not found');
+      }
+    });
+
+    return false;
+  };
+
+  // Ask server to get all packages for this business
+  function loadPackages() {
+    $.ajax({
+      url: `/packages/${buisnessId}`,
+      method: 'GET',
+      dataType: 'json',
+      success: function (data) {
+        packages = data;
+        renderPackagesTable(); // show them in table
+      },
+      error: () => showToast('Failed to load packages', true)
+    });
+  }
+
+  // Get a customer by ID from list
+  function getCustomerById(id) {
+    return customers.find(c => c._id === id) || {};
+  }
+
+  // Put a new package in correct order by date
+  function insertPackageSorted(newPackage) {
+    let inserted = false;
+    for (let i = 0; i < packages.length; i++) {
+      if (new Date(newPackage.start_date) >= new Date(packages[i].start_date)) {
+        packages.splice(i, 0, newPackage);
+        inserted = true;
+        break;
+      }
+    }
+    if (!inserted) packages.push(newPackage);
+  }
+
+  // Show all packages in the table
   function renderPackagesTable() {
     const tbody = $('#package-table tbody');
     tbody.empty();
 
-    // if no packages
     if (!packages.length) {
       tbody.append('<tr><td colspan="8" style="text-align:center;color:#aaa;">No packages found</td></tr>');
       return;
     }
 
-    // add each package row
     packages.forEach(pkg => {
       tbody.append(`
         <tr>
@@ -47,7 +150,7 @@ $(document).ready(function () {
           <td>${pkg.prod_id}</td>
           <td>${pkg.name}</td>
           <td>
-            <a href="#" class="customer-link" data-id="${pkg.customer && pkg.customer._id}">
+            <a href="#" class="customer-link" data-id="${pkg.customer?._id || ''}">
               ${pkg.customer?.name || ''}
             </a>
           </td>
@@ -63,41 +166,7 @@ $(document).ready(function () {
     });
   }
 
-  // get packages from server
-  function loadPackages() {
-    $.ajax({
-      url: `/packages/${buisnessId}`,
-      method: 'GET',
-      dataType: 'json',
-      success: function (data) {
-        packages = data;
-        renderPackagesTable(); // show table
-      },
-      error: () => showToast('Failed to load packages', true)
-    });
-  }
-
-  // get customer from list using ID
-  function getCustomerById(id) {
-    return customers.find(c => c._id === id) || {};
-  }
-
-  // add package to correct place in list (by date)
-  function insertPackageSorted(newPackage) {
-    let inserted = false;
-    for (let i = 0; i < packages.length; i++) {
-      if (new Date(newPackage.start_date) >= new Date(packages[i].start_date)) {
-        packages.splice(i, 0, newPackage);
-        inserted = true;
-        break;
-      }
-    }
-    if (!inserted) {
-      packages.push(newPackage);
-    }
-  }
-
-  // load customers to dropdown list
+  // Fill customer dropdown list in form
   function loadCustomerDropdown() {
     $.ajax({
       url: '/customers',
@@ -106,8 +175,7 @@ $(document).ready(function () {
       success: function (data) {
         customers = data;
         const $dropdown = $('#customer');
-        $dropdown.empty();
-        $dropdown.append('<option value="">Select customer...</option>');
+        $dropdown.empty().append('<option value="">Select customer...</option>');
         customers.forEach(cust => {
           $dropdown.append(`
             <option value="${cust._id}">
@@ -120,69 +188,28 @@ $(document).ready(function () {
     });
   }
 
-  // open "add package" modal
-  $('#add-package-top, #add-package-bottom').on('click', function () {
+  // --- EVENT HANDLERS ---
+
+  // Show add form
+  $('#add-package-top, #add-package-bottom').on('click', () => {
     loadCustomerDropdown();
     $('#add-package-modal').removeClass('hidden');
   });
 
-  // close modal
-  $('#close-add-modal').on('click', function () {
+  // Close add form
+  $('#close-add-modal').on('click', () => {
     $('#add-package-modal').addClass('hidden');
     $('#package-form')[0].reset();
     $('#package-form').validate().resetForm();
   });
 
-  // handle form submit
-  $('#package-form').validate({
-    submitHandler: function () {
-      const pkg = {
-        prod_id: $('#prod_id').val(),
-        name: $('#name').val(),
-        customer_id: $('#customer').val(),
-        start_date: new Date($('#start_date').val()).getTime(),
-        eta: new Date($('#eta').val()).getTime(),
-        status: $('#status').val(),
-        buisness_id: buisnessId
-      };
-
-      $.ajax({
-        url: `/packages`,
-        method: 'POST',
-        contentType: 'application/json',
-        data: JSON.stringify(pkg),
-        success: function (resp) {
-          $('#add-package-modal').addClass('hidden');
-          showToast('Package added!');
-
-          // add package to list and update table
-          const customer = getCustomerById(pkg.customer_id);
-          const newPackage = {
-            ...pkg,
-            _id: resp._id,
-            customer,
-            start_date: new Date(pkg.start_date).toISOString(),
-            eta: new Date(pkg.eta).toISOString(),
-            path: []
-          };
-          insertPackageSorted(newPackage);
-          renderPackagesTable();
-        },
-        error: xhr => showToast(xhr.responseJSON?.error || 'Failed to add package', true)
-      });
-
-      return false;
-    }
-  });
-
-  // show customer details
+  // Show customer details modal
   $('#package-table').on('click', '.customer-link', function (e) {
     e.preventDefault();
     const custId = $(this).data('id');
     $.get('/customers', customers => {
       const cust = customers.find(c => c._id === custId);
       if (!cust) return showToast('Customer not found', true);
-
       $('#cust-name').text(cust.name);
       $('#cust-email').text(cust.email);
       $('#cust-address').html(`
@@ -195,7 +222,7 @@ $(document).ready(function () {
 
   $('#close-customer-modal').on('click', () => $('#customer-modal').addClass('hidden'));
 
-  // open "add location" modal
+  // Open modal to add location
   $('#package-table').on('click', '.add-location-btn', function () {
     const packageId = $(this).data('id');
     $('#location-modal').data('packageid', packageId).removeClass('hidden');
@@ -205,33 +232,7 @@ $(document).ready(function () {
 
   $('#close-location-modal').on('click', () => $('#location-modal').addClass('hidden'));
 
-  // search location by text
-  $('#location-form').on('submit', function (e) {
-    e.preventDefault();
-    const location = $('#location-input').val();
-    $('#location-suggestion').removeClass('hidden').html('Searching...');
-
-    $.ajax({
-      url: '/location/search',
-      method: 'POST',
-      contentType: 'application/json',
-      data: JSON.stringify({ location }),
-      success: function (data) {
-        $('#location-suggestion')
-          .data('lat', data.lat)
-          .data('lon', data.lon)
-          .html(`
-            <strong>Found Address:</strong> ${data.address}<br>
-            <strong>Latitude:</strong> ${data.lat}<br>
-            <strong>Longitude:</strong> ${data.lon}<br>
-            <button id="add-location-final" class="btn primary" style="margin-top:10px;">Add This Location</button>
-          `);
-      },
-      error: xhr => $('#location-suggestion').html(xhr.responseJSON?.error || 'Location not found')
-    });
-  });
-
-  // add location to package
+  // Add location to package
   $('#location-suggestion').on('click', '#add-location-final', function () {
     const packageId = $('#location-modal').data('packageid');
     const lat = $('#location-suggestion').data('lat');
@@ -255,7 +256,7 @@ $(document).ready(function () {
     });
   });
 
-  // show path modal (list of lat/lon)
+  // Show path (all locations) for a package
   $('#package-table').on('click', '.package-path-link', function (e) {
     e.preventDefault();
     const packageId = $(this).data('id');
@@ -268,10 +269,11 @@ $(document).ready(function () {
         `<div>${idx + 1}. Lat: ${loc.lat}, Lon: ${loc.lon}</div>`
       ).join(''));
     }
+
     $('#path-modal').removeClass('hidden');
   });
 
-  // show map image from server
+  // Show map image of path
   $('#package-table').on('click', '.view-path-btn', function (e) {
     e.preventDefault();
     const packageId = $(this).data('id');
@@ -302,16 +304,9 @@ $(document).ready(function () {
       });
   });
 
-  // show message popup
-  function showToast(message, isError = false) {
-    $('#toast').text(message).removeClass('hidden').toggleClass('error', isError);
-    setTimeout(() => $('#toast').addClass('hidden'), 2200);
-  }
-
-  // close map modal
   $('#close-map-modal').on('click', () => $('#map-modal').addClass('hidden'));
 
-  // click outside modal to close it
+  // Close modals if click outside content
   $('.modal').on('mousedown', function (e) {
     if (e.target === this) {
       $(this).addClass('hidden');
@@ -323,7 +318,13 @@ $(document).ready(function () {
     }
   });
 
-  // start by loading all packages
-  loadPackages();
-  setupFormValidation();
+  // Show a small message popup
+  function showToast(message, isError = false) {
+    $('#toast').text(message).removeClass('hidden').toggleClass('error', isError);
+    setTimeout(() => $('#toast').addClass('hidden'), 2200);
+  }
+
+  // Start everything
+  loadPackages();          // get packages from server
+  setupFormValidation();   // setup form validation rules
 });
